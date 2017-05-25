@@ -1,3 +1,5 @@
+// Load environment variables from .env file
+require('dotenv-extended').load();
 var restify = require('restify');
 var builder = require('botbuilder');
 
@@ -18,5 +20,15 @@ server.post('/api/messages', connector.listen());
 
 // Receive messages from the user and respond by echoing each message back (prefixed with 'You said:')
 var bot = new builder.UniversalBot(connector, function (session) {
-    session.send("You said: %s", session.message.text);
+    session.send('Sorry, I did not understand \'%s\'. Type \'help\' if you need assistance.', session.message.text);
+});
+
+// LUIS recognizer
+var recognizer = new builder.LuisRecognizer(process.env.LUIS_URL);
+bot.recognizer(recognizer);
+
+bot.dialog('Help', function(session){
+	session.endDialog("Hi! This bot is currently in the works. Ask smart questions and don't be stupid");
+}).triggerAction({
+	matches: 'Help'
 });
