@@ -3,6 +3,9 @@ require('dotenv-extended').load();
 var restify = require('restify');
 var builder = require('botbuilder');
 
+// Custom js
+// var Story = require('./story.js');
+
 // Setup Restify Server
 var server = restify.createServer();
 server.listen(process.env.port || process.env.PORT || 3978, function () {
@@ -38,3 +41,7 @@ bot.dialog('Visit', function(session){
 }).triggerAction({
 	matches: 'Visit'
 });
+
+
+//test
+// var ss1 = new Story();
