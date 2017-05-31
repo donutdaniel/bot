@@ -4,7 +4,7 @@ var restify = require('restify');
 var builder = require('botbuilder');
 
 // Custom js
-// var Story = require('./story.js');
+var Story = require('./story.js');
 
 // Setup Restify Server
 var server = restify.createServer();
@@ -30,6 +30,7 @@ var bot = new builder.UniversalBot(connector, function (session) {
 var recognizer = new builder.LuisRecognizer(process.env.LUIS_URL);
 bot.recognizer(recognizer);
 
+
 bot.dialog('Help', function(session){
 	session.endDialog("Hi! This bot is currently in the works. Ask smart questions and don't be stupid");
 }).triggerAction({
@@ -43,5 +44,5 @@ bot.dialog('Visit', function(session){
 });
 
 
-//test
-// var ss1 = new Story();
+// Story construction
+var story1 = new Story();
