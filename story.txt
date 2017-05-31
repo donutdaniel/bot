@@ -1,8 +1,16 @@
-Hey, This is Dan! I'm new around San Francisco, do you think you can guide me around a little? I want to know the best places to visit.
-
-OPTION 1:
-Golden Gate Park
-
-OPTION 2:
-Pier 39
-
+<segment>
+Scene plays out with this line of text
+This is in a separate speech bubble
+<options>
+OptionKey destinationKey, trigger1, trigger2
+OptionKey destinationKey, triggers
+</options>
+</segment>
+<segment>
+Scene plays out with this line of text
+This is in a separate speech bubble
+<options>
+OptionKey destinationKey, trigger1, trigger2
+OptionKey destinationKey, triggers
+</options>
+</segment>

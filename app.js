@@ -5,6 +5,7 @@ var builder = require('botbuilder');
 
 // Custom js
 var Story = require('./story.js');
+var parser = require('./parser.js');
 
 // Setup Restify Server
 var server = restify.createServer();
@@ -46,3 +47,4 @@ bot.dialog('Visit', function(session){
 
 // Story construction
 var story1 = new Story();
+parser('story.txt');
