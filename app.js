@@ -5,7 +5,7 @@ var builder = require('botbuilder');
 
 // Custom js
 var Story = require('./story.js');
-var parser = require('./parser2.js');
+var parser = require('./parser.js');
 
 // Setup Restify Server
 var server = restify.createServer();
