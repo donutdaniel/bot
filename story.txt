@@ -33,7 +33,7 @@ Restart 1 "restart"
 
 <segment id=6>
 There's nothing else around in the room. You've searched it all.
-<immediate>
+<jump>
 1
-</immediate>
+</jump>
 </segment>
