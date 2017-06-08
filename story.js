@@ -49,7 +49,7 @@ class storySegment{
 	}
 
 	/*member variables
-	lines, options*/
+	id, lines, options, jump*/
 }
 
 /* main story data structure
