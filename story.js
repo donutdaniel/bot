@@ -4,52 +4,39 @@ class storySegment{
 	 * options - map of (string key, option object)
 	 * option object - value pair (trigger[], destination)
 	 */
-	constructor(lines, options){
-		if(arguments.length < 1){ //no lines
-			this.lines = [];
-			this.options = new Map();
-		}else if(arguments.length < 2){ //no options
-			this.lines = lines;
-			this.options = new Map();
-		}else{
-			this.lines = lines;
-			this.options = options;
-		}
+	constructor(lines = [], options = new Map(), jump = null){
+		this.lines = lines;
+		this.options = options;
+		this.jump = jump;
 	}
 
 	/*Adds a new option object to options*/
 	addOption(key, destination, triggers = []){
-		var option = {
-			'triggers': triggers,
-			'destination': value
-		}
+		var option = new Object();
+		option.destination = destination;
+		option.triggers = triggers;
 		this.options.set(key, option);
 	}
 
 	/*Adds new triggers to option*/
 	addTrigger(key, triggers){
 		var found = this.options.get(key);
-		if(found === undefined){
-			return;
+		if(found != undefined){
+			found.triggers.push(triggers);
 		}
-		found.triggers.push(triggers);
+
+	}
+
+	addJump(jump){
+		this.jump = jump;
 	}
 
 	getDestination(key){
 		return this.options.get(key).destination;
 	}
 
-	/*returns lines concatenated*/
-	getKey(){
-		var key;
-		for (var i = 0; i < this.lines.length; i++) {
-			key += this.lines[i];
-		}
-		return key;
-	}
-
 	/*member variables
-	id, lines, options, jump*/
+	lines, options, jump*/
 }
 
 /* main story data structure
@@ -57,38 +44,44 @@ class storySegment{
  * database of storySegments is stored as a hashset for easier access
  */
 class Story{
-	constructor(lines, options){
+	constructor(key, lines, options){
+		this.segments = new Map();
 		if(arguments.length < 1){
-			this.start = new storySegment();
+			this.start = null;
 		}else if(arguments.length < 2){
+			this.start = new storySegment();
+			this.segments.set(key, this.start);
+		}else if(arguments.length < 3){
 			this.start = new storySegment(lines);
+			this.segments.set(key, this.start);
 		}else{
 			this.start = new storySegment(lines, options);
+			this.segments.set(key, this.start);
 		}
 		this.current = this.start;
-		var segments = new Map();
-		segments.set(this.start.getKey(), this.start)
 	}
 
 	/*member functions*/
 	/* Creates and adds a new segment, adds to segments*/ 
-	addSegment(lines, options){
-		var segment = new storySegment(lines, options);
-		segments.set(lines, segment);
+	addSegment(id, lines, options, jump){
+		var segment = new storySegment(lines, options, jump);
+		this.segments.set(id, segment);
+		if(this.start === null){
+			this.start = segment;
+		}
 	}
 
 	/*finds segment and adds option to it*/
 	addOption(key, option){
-		var segment = segments.get(key);
-		if(segment === undefined){
-			return;
+		var segment = this.segments.get(key);
+		if(segment != undefined){
+			segment.addOption(key, option);
 		}
-		segment.addOption(key, option);
 	}
 
 	/*deletes key-value pair internally*/
 	delete(key){
-		delete segments.get(key)
+		delete this.segments.get(key)
 	}
 
 	/* Connect seg1 to seg2 using key 'connector'
@@ -112,8 +105,8 @@ class Story{
 	}
 
 	/*member variables:
-	 * public - start, end, current
-	 * private - segments
+	 * public - start, current
+	 * private - map segments
 	 */
 }
 

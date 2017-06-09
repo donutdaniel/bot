@@ -14,70 +14,61 @@ function parser(ifile){
 		}
 		// variables
 		var dataArray = data.toString().split("\r\n");
-		var lines = [];
 		var index = 0;
 		var id;
-		
+		var jump;
+
 		while(index < dataArray.length){
 			if(id = dataArray[index].match(/<segment id=(.*?)>/)[1]){ // match for segment starter
+				// reset variables
+				var lines = new Array(0);
+				var options = new Map();
+				jump = null;
 				index++;
-				// extract id
+				if(id.length < 1){
+					throw 'no id';
+				}
 
 				while(dataArray[index].match(/<\/segment>/g) === null){ // loop until segment end
-					// match for option starter
+					// match for options or jump starters
 					if(dataArray[index].match(/<options>/g)){
 						index++;
 						while(dataArray[index].match(/<\/options>/g) === null){ // loop until option end
 							// extract option
-
+							var optionsArray = dataArray[index].split(" ");
+							if(optionsArray.length < 2){
+								throw 'option formatting error';
+							}
+							var option = new Object();
+							option.destination = optionsArray[1];
+							if(optionsArray.length > 2){
+								option.triggers = optionsArray.slice(2, optionsArray.length);
+							}
+							options.set(optionsArray[0], option);
 							index++;
 						}
-					}
-					// match for jump starter
-					if(dataArray[index].match(/<jump>/g)){
+					}else if(dataArray[index].match(/<jump>/g)){
 						index++;
 						if(dataArray[index].match(/<\/jump>/g) === null){
 							// extract jump
-
+							jump = dataArray[index];
 						}else{
 							throw "Jump fault";
 						}
+					}else{
+						lines.push(dataArray[index]);
 					}
-					//extract line
-
 					index++;
 				}
+				// create and add segment
+				story.addSegment(id, lines, options, jump);
 			}
 			index++;
 		}
 
-		// while(dataStr.length != 0){
-		// 	beginSeg = dataStr.search("<" + tags[0] + " id=");
-		// 	endSeg = dataStr.search("</" + tags[0] + ">");
-		// 	beginOpt = dataStr.search("<" + tags[1] + ">");
-		// 	endOpt = dataStr.search("</" + tags[1] + ">");
-		// 	beginJp = dataStr.search("<" + tags[2] + ">");
-		// 	endJp = dataStr.search("</" + tags[2] + ">");
-		// 	if(beginSeg === -1 || endSeg === -1 || endSeg < beginSeg){
-		// 		// format error or end
-		// 		break;
-		// 	}
+		console.log(story);
 
-		// 	// extract id
-		// 	id = dataStr.substring(beginSeg + tags[0].length + 5, dataStr.search(">"));
-		// 	beginSeg = tags[0].length + 6 + id.length;
-		// 	index = beginSeg
-
-		// 	//extract lines
-		// 	if(beginOpt != -1){
-		// 		while(beginOpt > index && index < endSeg){
-		// 			lines.push();
-		// 		}
-		// 	}
-		// 	break;
-		// }
-		// var temp = dataStr.substring(beginSeg, endSeg);
-		// // console.log(temp);
+		return story;
 	});
 }
 
