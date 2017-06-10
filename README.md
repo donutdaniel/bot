@@ -5,4 +5,5 @@ see story.txt for example
   
 
 ### TODO:  
-rewrite story.js to be compatible with id's and jumps
+incorporate luis api  
+luis keys on azure
