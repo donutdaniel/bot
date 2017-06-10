@@ -13,8 +13,9 @@ class storySegment{
 	/*Adds a new option object to options*/
 	addOption(key, destination, triggers = []){
 		var option = new Object();
-		option.destination = destination;
+		option.destinationKey = destination;
 		option.triggers = triggers;
+		option.destination = undefined; //needs to be connected through story
 		this.options.set(key, option);
 	}
 
@@ -84,15 +85,14 @@ class Story{
 		delete this.segments.get(key)
 	}
 
-	/* Connect seg1 to seg2 using key 'connector'
-	 * seg1 and seg2 are identification strings */
-	connect(seg1, seg2, connector, triggers = []){
-		var seg1f = this.segments.get(seg1);
-		var seg2f = this.segments.set(seg2);
-		if(seg1f === undefined || seg2f === undefined){
-			return;
-		}
-		seg1f.addOption(connector, seg2f, triggers);
+	/*connect all the segments using key identification. Run after adding all the segments*/
+	connect(){
+		this.segments.forEach(function(value, key, map){
+			value.options.forEach(function(value_o, key_o, map_o){
+				var destSeg = map.get(value_o.destinationKey);
+				value_o.destination = destSeg;
+			});
+		});
 	}
 
 	/*follows with proceed key and returns the next segment*/
