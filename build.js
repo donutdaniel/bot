@@ -43,7 +43,6 @@ function build(structure){
                         }
                         optionsPath = optionsPath[1];
                         https.request(options).end();
-
                     }
                 });
                 reqAddIntent.write(JSON.stringify(intentJSON));
