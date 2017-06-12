@@ -105,8 +105,8 @@ class Story{
 	}
 
 	/*member variables:
-	 * public - start, current
-	 * private - map segments
+	 * start, current, name, description
+	 * map of segments
 	 */
 }
 

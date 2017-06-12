@@ -46,4 +46,4 @@ bot.dialog('Visit', function(session){
 
 
 // Story construction
-var story = parser('story_files/story1.txt');
+var story = parser('structure_files/story1.txt');

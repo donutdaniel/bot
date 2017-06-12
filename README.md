@@ -14,5 +14,5 @@ API_KEY
 
 
 ### TODO:  
-incorporate luis api  
-luis keys on azure
+add name and description to story.js  
+rename generally to structure

@@ -2,7 +2,7 @@
   "ID": "string",
   "Name": "Sample",
   "Description": "string",
-  "Culture": "en-US",
+  "Culture": "en-us",
   "Active": true,
   "CreatedDate": "string",
   "ModifiedDate": "string",
