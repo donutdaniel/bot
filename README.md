@@ -14,5 +14,5 @@ API_KEY
 
 
 ### TODO:  
-add name and description to story.js  
-rename generally to structure
+fix parser - option trigger split  
+fix builder - slow api calls
