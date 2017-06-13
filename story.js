@@ -45,14 +45,14 @@ class storySegment{
  * database of storySegments is stored as a hashset for easier access
  */
 class Story{
-	constructor(key, lines, options){
+	constructor(name, description, key, lines, options){
 		this.segments = new Map();
-		if(arguments.length < 1){
+		if(arguments.length < 3){
 			this.start = null;
-		}else if(arguments.length < 2){
+		}else if(arguments.length < 4){
 			this.start = new storySegment();
 			this.segments.set(key, this.start);
-		}else if(arguments.length < 3){
+		}else if(arguments.length < 5){
 			this.start = new storySegment(lines);
 			this.segments.set(key, this.start);
 		}else{
@@ -60,6 +60,8 @@ class Story{
 			this.segments.set(key, this.start);
 		}
 		this.current = this.start;
+		this.name = name;
+		this.description = description;
 	}
 
 	/*member functions*/
@@ -69,6 +71,7 @@ class Story{
 		this.segments.set(id, segment);
 		if(this.start === null){
 			this.start = segment;
+			this.current = segment;
 		}
 	}
 

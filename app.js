@@ -6,6 +6,7 @@ var builder = require('botbuilder');
 // Custom js
 var Story = require('./story.js');
 var parser = require('./parser.js');
+var nlpbuild = require('./build.js');
 
 // Setup Restify Server
 var server = restify.createServer();
@@ -47,3 +48,5 @@ bot.dialog('Visit', function(session){
 
 // Story construction
 var story = parser('structure_files/story1.txt');
+var url = nlpbuild.build(story);
+console.log(url);
