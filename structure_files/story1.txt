@@ -3,30 +3,30 @@ This is the tutorial
 <segment id=1>
 You are in a room with a box. What do you do?
 <options>
-Box 2 "Open the box" "Inspect the box" "Look at the box"
-Look 6 "Look around" "Walk around"
+Box 2 Open the box/Inspect the box/Look at the box
+Look 6 Look around/Walk around
 </options>
 </segment>
 <segment id=2>
 You inspect the box, but it's locked. Maybe there's a key somewhere around here?
 You search the room for a key, but there's none to be found. You return to the box and find it unlocked. Open it?
 <options>
-Open 3 "Open" "Yes" "Open it" "Yes open it"
-Close 4 "No" "Don't open it" "No, don't open it"
+Open 3 Open/Yes/Open it/Yes open it
+Close 4 No/Don't open it/No, don't open it
 </options>
 </segment>
 <segment id=3>
 You open the box and it contains candies. You eat it before examining the label: cyanide infused candies. You die a slow death.
 END. Say 'restart' to restart.
 <options>
-Restart 1 "restart"
+Restart 1 restart
 </options>
 </segment>
 <segment id=4>
 Good idea, probably shouldn't open something unfamiliar. You realize deadly neurotoxin has been leaking into the room all along. You die a painful death.
 END. Say 'restart' to restart.
 <options>
-Restart 1 "restart"
+Restart 1 restart
 </options>
 </segment>
 <segment id=6>
