@@ -2,6 +2,74 @@ require('dotenv-extended').load();
 var https = require('https');
 var fs  = require('fs');
 
+function request(path, method, callback, data){
+    var options = {
+        hostname: 'westus.api.cognitive.microsoft.com',
+        port: 443,
+        path: path,
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+            'Ocp-Apim-Subscription-Key': process.env.API_KEY,
+        }
+    };
+    var req = https.request(options, (res) => {
+        res.on('data', (d) =>{
+            var dJSON = JSON.parse(d);
+            if(dJSON.error != undefined){ // top level error
+                throw Error(dJSON.error.message);
+            }else if(dJSON.statusCode != undefined){ // general error
+                console.log(dJSON.message);
+                return;
+            }else if(dJSON.statusCode === 429){ // timeout error, try again in one second
+                setTimeout(request(path, method, callback, data), 1000);             
+            }else{
+                callback(d); // execute normally
+            }
+        });
+    });
+    if(method == 'POST'){
+        req.write(data);
+    }
+    req.end();
+}
+
+/*Callback functions, with each cascading into another*/
+
+function dummyCB(data){
+
+}
+
+function getAppCB(data){
+
+}
+
+function addAppCB(data){
+
+}
+
+function addIntentCB(data){
+
+}
+
+function addUtteranceCB(data){
+
+}
+
+function trainCB(data){
+
+}
+
+function publishCB(data){
+
+}
+
+/*Multi-part step to build natural language processing unit
+ * returns the published url*/
+function build2(structure){
+    request('/luis/v1.0/prog/apps/', 'POST', addCB, data);
+}
+
 /*Multi-part step to build natural language processing unit
 returns the published url*/
 function build(structure){
@@ -18,10 +86,11 @@ function build(structure){
     var appID, uPath, optionsPath;
     // add app
     options.path = '/luis/v1.0/prog/apps/';
-    var reqAddApp = https.request(options, (res) => {
+    var reqAddApp = https.request(options, (res) => { //todo: find existing before adding
         res.on('data', (d) => {
             var dJSON = JSON.parse(d);
             if(dJSON.error != undefined){
+                console.log(d.toString());
                 throw Error(dJSON.error.message);
             }else{
                 console.log("Adding App: " + d.toString());
@@ -34,11 +103,15 @@ function build(structure){
             structure.segments.forEach((value, key, map) => {
                 value.options.forEach((value_o, key_o, map_o) => {
                     options.path = optionsPath[0];
-                    var reqAddIntent = https.request(options, (res) => {
+                        var reqAddIntent = https.request(options, (res) => {
                         res.on('data', (d) => {  
                             var dJSON = JSON.parse(d);
                             if(dJSON.error != undefined){
-                                console.log("Adding Intent ["+key_o+"]: ERROR: " + dJSON.error.message); 
+                                console.log("Adding Intent ["+key_o+"]: ERROR: " + dJSON.error.message);
+                                return;
+                            }else if(dJSON.statusCode === 429){
+                                console.log("Adding Intent ["+key_o+"]: ERROR: " + dJSON.message);
+                                return;
                             }else{
                                 console.log("Adding Intent ["+key_o+"]: " + d.toString());
                             }
@@ -51,9 +124,18 @@ function build(structure){
                                 utteranceJSON.push(exampletextObj);
                             }
                             options.path = optionsPath[1];
-                            var reqAddExamples = https.request(options, (res) => {
+                                var reqAddExamples = https.request(options, (res) => {
                                 res.on('data', (d) => {
-                                    console.log("Adding Utterances ["+utteranceJSON[0].exampletext+"]: " + d.toString());
+                                    var dJSON = JSON.parse(d);
+                                    if(dJSON.error != undefined){
+                                        console.log("Adding Utterances ["+utteranceJSON[0].exampletext+"]: ERROR:" + dJSON.error.message);
+                                        return;
+                                    }else if(dJSON.statusCode === 429){
+                                        console.log("Adding Utterances ["+utteranceJSON[0].exampletext+"]: ERROR:" + dJSON.message);
+                                        return;
+                                    }else{
+                                        console.log("Adding Utterances ["+utteranceJSON[0].exampletext+"]: " + d.toString());
+                                    }
                                 });
                             });
                             reqAddExamples.write(JSON.stringify(utteranceJSON));
@@ -118,26 +200,6 @@ function deleteApp(appID){
         });
     }).end();
 }
-
-// var options1 = {
-//     hostname: 'westus.api.cognitive.microsoft.com',
-//     port: 443,
-//     path: '/luis/v1.0/prog/apps/79a1aa4a-cea8-4626-b29b-77f69f3428bf/intents',
-//     method: 'POST',
-//     headers: {
-//         'Ocp-Apim-Subscription-Key': process.env.API_KEY,
-//     }
-// };
-// var testjson = {
-//     "name": "testintent"
-// }
-// var reqtest = https.request(options1, (res) => {
-//     res.on('data', (d) => {
-//         console.log(d.toString());
-//     });
-// });
-// reqtest.write(JSON.stringify(testjson));
-// reqtest.end();
 
 exports.build = build;
 exports.delete = deleteApp;
