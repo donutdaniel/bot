@@ -2,7 +2,15 @@ require('dotenv-extended').load();
 var https = require('https');
 var fs  = require('fs');
 
-function request(path, method, callback, data){
+/*request function for bot structure, takes care of error checking
+structure: main bot structure to be built
+callback: data as buffer object is passed in
+data: data object as parameter, automatically converted to string in function
+immediate: no data stream expected, immediately issue callback*/
+function request(structure, path = '', method = 'GET', callback, data, immediate = false){
+    if(arguments.length < 1){
+        throw Error('BotStructure not provided.');
+    }
     var options = {
         hostname: 'westus.api.cognitive.microsoft.com',
         port: 443,
@@ -14,65 +22,152 @@ function request(path, method, callback, data){
         }
     };
     var req = https.request(options, (res) => {
+        if(immediate){
+            callback(structure, null);
+            return;
+        }
+        res.on('error', () => {
+            console.log('error');
+        })
         res.on('data', (d) =>{
+            if(d === undefined){
+                callback(structure, d);
+            }
             var dJSON = JSON.parse(d);
             if(dJSON.error != undefined){ // top level error
+                console.log(dJSON.error);
                 throw Error(dJSON.error.message);
             }else if(dJSON.statusCode != undefined){ // general error
-                console.log(dJSON.message);
-                return;
-            }else if(dJSON.statusCode === 429){ // timeout error, try again in one second
-                setTimeout(request(path, method, callback, data), 1000);             
+                if(dJSON.statusCode === 429){
+                    console.log('timeout');
+                    setTimeout(function(){ request(path, method, callback, data) }, 1000);
+                }else{
+                    console.log(dJSON.message);
+                    return;
+                }
             }else{
-                callback(d); // execute normally
+                callback(structure, d); // execute normally
             }
         });
     });
-    if(method == 'POST'){
-        req.write(data);
+    if(method === 'POST' || method === 'PUT'){
+        req.write(JSON.stringify(data));
     }
+    req.on('error', (e) => {
+      console.error(e);
+    });
     req.end();
 }
 
 /*Callback functions, with each cascading into another*/
 
-function dummyCB(data){
+function dummyCB(structure, data){
 
 }
 
-function getAppCB(data){
+function dislpayCB(structure, data){
+    console.log(data.toString());
+}
+
+/*Iterates through each existing app, matching names.
+if matched, then the app is updated
+if not matched, a new app is created*/
+function getAppCB(structure, data){
+    var appData = new Object();
+    appData.name = structure.name;
+    appData.description = structure.description;
+    appData.culture = 'en-us';
+    var path = '/luis/v1.0/prog/apps/';
+    var dJSON = JSON.parse(data);
+    for (var i = 0; i < dJSON.length; i++) {
+        if(dJSON[i].Name === structure.name){
+            // Matched
+            var id = dJSON[i].ID;
+            structure.id = id;
+            path = path + id;
+            console.log('updating');
+            request(structure, path, 'PUT', updateAppCB, appData, true);
+            return;
+        }
+    }
+    // Not Matched
+    console.log('adding');
+    request(structure, path, 'POST', addAppCB, appData);
 
 }
 
-function addAppCB(data){
+/*Assigns id to structure, then begins adding intents*/
+function addAppCB(structure, data){
+    var dJSON = JSON.parse(data);
+    structure.id = dJSON;
+    var path = '/luis/v1.0/prog/apps/' + structure.id + '/intents';
+    console.log('getting intents');
+    request(structure, path, 'GET', getIntentsCB);
+}
+
+function updateAppCB(structure, data){
+    var path = '/luis/v1.0/prog/apps/' + structure.id + '/intents';
+    console.log('getting intents');
+    request(structure, path, 'GET', getIntentsCB);
+}
+
+function getIntentsCB(structure, data){
+    var dJSON = JSON.parse(data);
+    var existingIntents = [];
+    dJSON.forEach((value, index, array) => {
+        existingIntents.push(value.name);
+    });
+    var path = '/luis/v1.0/prog/apps/' + structure.id + '/intents';
+    structure.segments.forEach((value_s, key_s, map_s) => {
+        value_s.options.forEach((value_o, key_o, map_o) => {
+            // Check for duplicates
+            if(existingIntents.find((element, index, array) => { return element === key_o; }) === undefined){
+                console.log('adding intent');
+                existingIntents.push(key_o);
+                var intentData = new Object();
+                intentData.name = key_o;
+                request(structure, path, 'POST', addIntentCB, intentData);
+            }
+        });
+    });
+}
+
+function addIntentCB(structure, data){
 
 }
 
-function addIntentCB(data){
+function addUtterancesCB(structure, data){
 
 }
 
-function addUtteranceCB(data){
+function trainCB(structure, data){
 
 }
 
-function trainCB(data){
-
-}
-
-function publishCB(data){
+function publishCB(structure, data){
 
 }
 
 /*Multi-part step to build natural language processing unit
  * returns the published url*/
-function build2(structure){
-    request('/luis/v1.0/prog/apps/', 'POST', addCB, data);
+function build(structure){
+    var path = '/luis/v1.0/prog/apps'
+    if(structure.id === undefined){
+        request(structure, path, 'GET', getAppCB); 
+    }else{
+        var appData = new Object();
+        appData.name = structure.name;
+        appData.description = structure.description;
+        appData.culture = 'en-us';
+        console.log('updating');
+        request(structure, path + structure.id, 'PUT', updateAppCB, appData);
+    }
+
 }
 
 /*Multi-part step to build natural language processing unit
 returns the published url*/
-function build(structure){
+function build_old(structure){
     var options = {
         hostname: 'westus.api.cognitive.microsoft.com',
         port: 443,
@@ -203,5 +298,3 @@ function deleteApp(appID){
 
 exports.build = build;
 exports.delete = deleteApp;
-
-// module.exports = build;

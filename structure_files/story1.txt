@@ -1,5 +1,6 @@
 TutorialBot
 This is the tutorial
+
 <segment id=1>
 You are in a room with a box. What do you do?
 <options>

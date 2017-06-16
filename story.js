@@ -62,6 +62,7 @@ class Story{
 		this.current = this.start;
 		this.name = name;
 		this.description = description;
+		this.id = undefined;
 	}
 
 	/*member functions*/
@@ -108,7 +109,7 @@ class Story{
 	}
 
 	/*member variables:
-	 * start, current, name, description
+	 * start, current, name, description, id
 	 * map of segments
 	 */
 }

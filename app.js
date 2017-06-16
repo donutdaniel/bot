@@ -49,4 +49,3 @@ bot.dialog('Visit', function(session){
 // Story construction
 var story = parser('structure_files/story1.txt');
 var url = nlpbuild.build(story);
-console.log(url);

@@ -5,7 +5,7 @@ var fs = require('fs');
 function parseHelper(data){
 	var story = new Story();
 	var dataArray = data.toString().split("\r\n");
-	var index = 2;
+	var index = 3;
 	var id;
 	var jump;
 	if(dataArray.length < 2){
@@ -13,6 +13,11 @@ function parseHelper(data){
 	}
 	story.name = dataArray[0];
 	story.description = dataArray[1];
+	if(dataArray[2] === ''){
+		story.id = undefined;
+	}else{
+		story.id = dataArray[2];
+	}
 	
 	while(index < dataArray.length){
 		if(id = dataArray[index].match(/<segment id=(.*?)>/)[1]){ // match for segment starter
