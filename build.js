@@ -111,29 +111,49 @@ function updateAppCB(structure, data){
     request(structure, path, 'GET', getIntentsCB);
 }
 
-function getIntentsCB(structure, data){
+function getIntentsCB(structure, data){ // TODO: allow for updating
     var dJSON = JSON.parse(data);
     var existingIntents = [];
     dJSON.forEach((value, index, array) => {
         existingIntents.push(value.name);
     });
-    var path = '/luis/v1.0/prog/apps/' + structure.id + '/intents';
+    var path = '/luis/v1.0/prog/apps/' + structure.id;
+    var utterancesData = [];
     structure.segments.forEach((value_s, key_s, map_s) => {
         value_s.options.forEach((value_o, key_o, map_o) => {
-            // Check for duplicates
+            // Check for duplicates and add
             if(existingIntents.find((element, index, array) => { return element === key_o; }) === undefined){
                 console.log('adding intent');
                 existingIntents.push(key_o);
                 var intentData = new Object();
                 intentData.name = key_o;
-                request(structure, path, 'POST', addIntentCB, intentData);
+                request(structure, path + '/intents', 'POST', addIntentCB, intentData);
+            }
+            for (var i = 0; i < value_o.triggers.length; i++) {
+                utterancesData.push({selectedintentName: key_o, exampletext: value_o.triggers[i]});
             }
         });
     });
+    console.log('adding utterances');
+    request(structure, path + '/examples', 'POST', addUtterancesCB, utterancesData);
 }
 
 function addIntentCB(structure, data){
-
+// Add all the utterances
+    // var path = '/luis/v1.0/prog/apps/' + structure.id;
+    // structure.segments.forEach((value_s, key_s, map_s) => {
+    //     value_s.options.forEach((value_o, key_o, map_o) => {
+    //         // add utterances in batches
+    //         var utterancesData = [{"selectedintentname": key_o}];
+    //         for(var i = 0; i < value_o.triggers.length; i++){
+    //             var exampletextObj = new Object();
+    //             exampletextObj.exampletext = value_o.triggers[i];
+    //             utterancesData.push(exampletextObj);
+    //         }
+    //         console.log(JSON.stringify(utterancesData));
+    //         request(structure, path + '/examples', 'POST', addUtterancesCB, utterancesData);
+    //     });
+    // });
 }
 
 function addUtterancesCB(structure, data){
