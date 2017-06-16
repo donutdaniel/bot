@@ -14,5 +14,4 @@ API_KEY
 
 
 ### TODO:  
-fix parser - option trigger split  
-fix builder - slow api calls
+link adding examples, training, publishing  
