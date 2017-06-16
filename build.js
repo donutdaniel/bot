@@ -1,6 +1,7 @@
 require('dotenv-extended').load();
 var https = require('https');
 var fs  = require('fs');
+var universalPath = '/luis/api/v2.0/apps/';
 
 /*request function for bot structure, takes care of error checking
 structure: main bot structure to be built
@@ -60,7 +61,6 @@ function request(structure, path = '', method = 'GET', callback, data, immediate
 }
 
 /*Callback functions, with each cascading into another*/
-
 function dummyCB(structure, data){
 
 }
@@ -76,13 +76,14 @@ function getAppCB(structure, data){
     var appData = new Object();
     appData.name = structure.name;
     appData.description = structure.description;
+    appData.verion = structure.version;
     appData.culture = 'en-us';
-    var path = '/luis/v1.0/prog/apps/';
+    var path = universalPath;
     var dJSON = JSON.parse(data);
     for (var i = 0; i < dJSON.length; i++) {
-        if(dJSON[i].Name === structure.name){
+        if(dJSON[i].name === structure.name){
             // Matched
-            var id = dJSON[i].ID;
+            var id = dJSON[i].id;
             structure.id = id;
             path = path + id;
             console.log('updating');
@@ -100,14 +101,12 @@ function getAppCB(structure, data){
 function addAppCB(structure, data){
     var dJSON = JSON.parse(data);
     structure.id = dJSON;
-    var path = '/luis/v1.0/prog/apps/' + structure.id + '/intents';
-    console.log('getting intents');
+    var path = universalPath + structure.id + '/versions/' + structure.version + '/intents';
     request(structure, path, 'GET', getIntentsCB);
 }
 
 function updateAppCB(structure, data){
-    var path = '/luis/v1.0/prog/apps/' + structure.id + '/intents';
-    console.log('getting intents');
+    var path = universalPath + structure.id + '/versions/' + structure.version + '/intents';
     request(structure, path, 'GET', getIntentsCB);
 }
 
@@ -117,11 +116,11 @@ function getIntentsCB(structure, data){ // TODO: allow for updating
     dJSON.forEach((value, index, array) => {
         existingIntents.push(value.name);
     });
-    var path = '/luis/v1.0/prog/apps/' + structure.id;
-    var utterancesData = [];
+    var path = universalPath + structure.id + '/versions/' + structure.version;
+    var examplesData = [];
     structure.segments.forEach((value_s, key_s, map_s) => {
         value_s.options.forEach((value_o, key_o, map_o) => {
-            // Check for duplicates and add
+            // Check for duplicates and add in batch
             if(existingIntents.find((element, index, array) => { return element === key_o; }) === undefined){
                 console.log('adding intent');
                 existingIntents.push(key_o);
@@ -130,34 +129,26 @@ function getIntentsCB(structure, data){ // TODO: allow for updating
                 request(structure, path + '/intents', 'POST', addIntentCB, intentData);
             }
             for (var i = 0; i < value_o.triggers.length; i++) {
-                utterancesData.push({selectedintentName: key_o, exampletext: value_o.triggers[i]});
+                examplesData.push({intentName: key_o, text: value_o.triggers[i]});
             }
         });
     });
-    console.log('adding utterances');
-    request(structure, path + '/examples', 'POST', addUtterancesCB, utterancesData);
+    console.log('batch adding labelled examples');
+    request(structure, path + '/examples', 'POST', addBatchLabelsCB, examplesData);
 }
 
 function addIntentCB(structure, data){
-// Add all the utterances
-    // var path = '/luis/v1.0/prog/apps/' + structure.id;
-    // structure.segments.forEach((value_s, key_s, map_s) => {
-    //     value_s.options.forEach((value_o, key_o, map_o) => {
-    //         // add utterances in batches
-    //         var utterancesData = [{"selectedintentname": key_o}];
-    //         for(var i = 0; i < value_o.triggers.length; i++){
-    //             var exampletextObj = new Object();
-    //             exampletextObj.exampletext = value_o.triggers[i];
-    //             utterancesData.push(exampletextObj);
-    //         }
-    //         console.log(JSON.stringify(utterancesData));
-    //         request(structure, path + '/examples', 'POST', addUtterancesCB, utterancesData);
-    //     });
-    // });
+    var dJSON = JSON.parse(data);
+    console.log("successfully added intent: " + dJSON);
 }
 
-function addUtterancesCB(structure, data){
-
+function addBatchLabelsCB(structure, data){
+    var dJSON = JSON.parse(data);
+    for (var i = 0; i < dJSON.length; i++) {
+        if(dJSON[i].hasError){
+            console.log('Error adding: ' + dJSON[i].error.message);
+        }
+    }
 }
 
 function trainCB(structure, data){
@@ -171,16 +162,16 @@ function publishCB(structure, data){
 /*Multi-part step to build natural language processing unit
  * returns the published url*/
 function build(structure){
-    var path = '/luis/v1.0/prog/apps'
     if(structure.id === undefined){
-        request(structure, path, 'GET', getAppCB); 
+        request(structure, universalPath, 'GET', getAppCB); 
     }else{
         var appData = new Object();
         appData.name = structure.name;
         appData.description = structure.description;
+        appData.verion = structure.version;
         appData.culture = 'en-us';
         console.log('updating');
-        request(structure, path + structure.id, 'PUT', updateAppCB, appData);
+        request(structure, universalPath + structure.id, 'PUT', updateAppCB, appData);
     }
 
 }

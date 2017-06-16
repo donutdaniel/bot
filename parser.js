@@ -11,8 +11,15 @@ function parseHelper(data){
 	if(dataArray.length < 2){
 		throw 'error parsing';
 	}
-	story.name = dataArray[0];
+	var nameVer = dataArray[0].split(" ");
+	story.name = nameVer[0];
+	if(nameVer[1] === undefined){
+		story.version = 0.1;
+	}else{
+		story.version = nameVer[1];
+	}
 	story.description = dataArray[1];
+	story.version = dataArray[0].split(" ")[1];
 	if(dataArray[2] === ''){
 		story.id = undefined;
 	}else{

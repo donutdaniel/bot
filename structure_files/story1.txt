@@ -1,4 +1,4 @@
-TutorialBot
+TutorialBot 0.1
 This is the tutorial
 
 <segment id=1>
