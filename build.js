@@ -1,6 +1,8 @@
 require('dotenv-extended').load();
 var https = require('https');
 var fs  = require('fs');
+var events = require('events');
+var eventEmitter = new events();
 var universalPath = '/luis/api/v2.0/apps/';
 
 /*request function for bot structure, takes care of error checking
@@ -41,7 +43,9 @@ function request(structure, path = '', method = 'GET', callback, data, immediate
             }else if(dJSON.statusCode != undefined){ // general error
                 if(dJSON.statusCode === 429){
                     console.log('timeout');
-                    setTimeout(function(){ request(path, method, callback, data) }, 1000);
+                    setTimeout(function(){
+                        request(structure, path, method, callback, data, immediate);
+                    }, 1000);
                 }else{
                     console.log(dJSON.message);
                     return;
@@ -118,14 +122,18 @@ function getIntentsCB(structure, data){ // TODO: allow for updating
     });
     var path = universalPath + structure.id + '/versions/' + structure.version;
     var examplesData = [];
+    // helper variables to make sure process of adding intents has finished
+    var intentsAddedSum = 0;
+    var totalNewIntents = 0;
     structure.segments.forEach((value_s, key_s, map_s) => {
         value_s.options.forEach((value_o, key_o, map_o) => {
             // Check for duplicates and add in batch
             if(existingIntents.find((element, index, array) => { return element === key_o; }) === undefined){
-                console.log('adding intent');
+                totalNewIntents++;
                 existingIntents.push(key_o);
                 var intentData = new Object();
                 intentData.name = key_o;
+                console.log('adding intent');
                 request(structure, path + '/intents', 'POST', addIntentCB, intentData);
             }
             for (var i = 0; i < value_o.triggers.length; i++) {
@@ -133,13 +141,21 @@ function getIntentsCB(structure, data){ // TODO: allow for updating
             }
         });
     });
-    console.log('batch adding labelled examples');
-    request(structure, path + '/examples', 'POST', addBatchLabelsCB, examplesData);
+    if(totalNewIntents === 0){
+        console.log('batch adding labelled examples');
+        request(structure, path + '/examples', 'POST', addBatchLabelsCB, examplesData);
+    }
+    eventEmitter.on("intentAdded", function(){
+        intentsAddedSum++;
+        if(intentsAddedSum === totalNewIntents){
+            console.log('batch adding labelled examples');
+            request(structure, path + '/examples', 'POST', addBatchLabelsCB, examplesData);
+        }
+    });
 }
 
 function addIntentCB(structure, data){
-    var dJSON = JSON.parse(data);
-    console.log("successfully added intent: " + dJSON);
+    eventEmitter.emit("intentAdded");
 }
 
 function addBatchLabelsCB(structure, data){

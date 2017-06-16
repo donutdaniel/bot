@@ -5,7 +5,7 @@ This is the tutorial
 You are in a room with a box. What do you do?
 <options>
 Box 2 Open the box/Inspect the box/Look at the box
-Look 6 Look around/Walk around
+Look 5 Look around/Walk around
 </options>
 </segment>
 <segment id=2>
@@ -30,7 +30,7 @@ END. Say 'restart' to restart.
 Restart 1 restart
 </options>
 </segment>
-<segment id=6>
+<segment id=5>
 There's nothing else around in the room. You've searched it all.
 <jump>
 1
