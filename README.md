@@ -14,4 +14,5 @@ API_KEY
 
 
 ### TODO:  
-link adding examples, training, publishing  
+linke app and build app together  
+more async stuff  
