@@ -28,24 +28,27 @@ var bot = new builder.UniversalBot(connector, function (session) {
     session.send('Sorry, I did not understand \'%s\'. Type \'help\' if you need assistance.', session.message.text);
 });
 
-// LUIS recognizer
-var recognizer = new builder.LuisRecognizer(process.env.LUIS_URL);
-bot.recognizer(recognizer);
+// Parse text file into structure
+var structure = parser('structure_files/story1.txt');
 
+// Construct LUIS app and recognizer
+var LUIS_URL = process.env.LUIS_URL
+if(LUIS_URL === ''){
+	buildApp.build(structure);
+	buildApp.emitter.on('done', function(url_){
+		LUIS_URL = url_;
+		var recognizer = new builder.LuisRecognizer(LUIS_URL);
+		bot.recognizer(recognizer);
+	});
+}else{
+	recognizer = new builder.LuisRecognizer(LUIS_URL);
+	bot.recognizer(recognizer);
+}
 
+// Construct path through language intents and structure
 bot.dialog('Help', function(session){
-	session.endDialog("Hi! This bot is currently in the works. Ask smart questions and don't be stupid");
+	session.endDialog("Hi! This bot is currently in the works. See github for help.");
 }).triggerAction({
 	matches: 'Help'
 });
 
-bot.dialog('Visit', function(session){
-	session.endDialog("Oh that sounds cool!");
-}).triggerAction({
-	matches: 'Visit'
-});
-
-
-// Story construction
-var story = parser('structure_files/story1.txt');
-var url = buildApp.build(story);

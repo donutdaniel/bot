@@ -2,8 +2,10 @@ require('dotenv-extended').load();
 var https = require('https');
 var fs  = require('fs');
 var events = require('events');
-var eventEmitter = new events();
+var emitter = new events();
 var universalPath = '/luis/api/v2.0/apps/';
+
+/*buildApp takes a structure and returns a url containing the luis app*/
 
 /*request function for bot structure, takes care of error checking
 structure: main bot structure to be built
@@ -150,7 +152,7 @@ function getIntentsCB(structure, data){ // TODO: allow for updating
         console.log("Batch Adding Labelled Examples");
         request(structure, path + '/examples', 'POST', addBatchLabelsCB, examplesData);
     }
-    eventEmitter.on("intentAdded", function(){
+    emitter.on("intentAdded", function(){
         intentsAddedSum++;
         if(intentsAddedSum === totalNewIntents){
             console.log("Batch Adding Labelled Examples");
@@ -161,7 +163,7 @@ function getIntentsCB(structure, data){ // TODO: allow for updating
 
 function addIntentCB(structure, data){
     // Triggers adding batch labels
-    eventEmitter.emit("intentAdded");
+    emitter.emit("intentAdded");
 }
 
 function addBatchLabelsCB(structure, data){
@@ -201,6 +203,7 @@ function trainStatusCB(structure, data){
     publishData.versionId = structure.version;
     publishData.isStaging = false;
     console.log("Training Status: Done!");
+    console.log("Publishing");
     request(structure, universalPath + structure.id + '/publish', 'POST', publishCB, publishData);
 }
 
@@ -208,7 +211,8 @@ function publishCB(structure, data){
     var dJSON = JSON.parse(data);
     var url = dJSON.endpointUrl + '?subscription-key=' + dJSON.assignedEndpointKey + '&timezoneOffset=0&verbose=true&q='
     console.log("Endpoint Url: " + url);
-    // TODO: return url
+    exports.url = url;
+    emitter.emit('done', url);
 }
 
 /*Multi-part step to build natural language processing unit
@@ -243,6 +247,7 @@ function deleteApp(appId){
         console.log("Successfully Deleted");
     }).end();
 }
-
+exports.emitter = emitter;
+exports.url = undefined;
 exports.build = buildApp;
 exports.deleteApp = deleteApp;
