@@ -4,7 +4,7 @@ var restify = require('restify');
 var builder = require('botbuilder');
 
 // Custom js
-var Story = require('./story.js');
+var structure = require('./structure.js');
 var parser = require('./parser.js');
 var buildApp = require('./buildApp.js');
 
@@ -51,4 +51,3 @@ bot.dialog('Help', function(session){
 }).triggerAction({
 	matches: 'Help'
 });
-

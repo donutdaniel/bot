@@ -1,9 +1,9 @@
-var Story = require('./story.js');
+var structure = require('./structure.js');
 var fs = require('fs');
 
 /*takes the data as a string and returns a story*/
 function parseHelper(data){
-	var story = new Story();
+	var story = new structure();
 	var dataArray = data.toString().split("\r\n");
 	var index = 3;
 	var id;

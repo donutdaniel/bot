@@ -1,5 +1,5 @@
-/*fragments of story to be stored in Story class, not accessable in export*/
-class storySegment{
+/*fragments of story to be stored in structure class, not accessable in export*/
+class segment{
 	/* lines - an array of strings to be said in the scene
 	 * options - map of (string key, option object)
 	 * option object - value pair (trigger[], destination)
@@ -41,22 +41,22 @@ class storySegment{
 }
 
 /* main story data structure
- * storySegments is an options.length-ary tree
- * database of storySegments is stored as a hashset for easier access
+ * segments is an options.length-ary tree
+ * database of segments is stored as a hashset for easier access
  */
-class Story{
+class structure{
 	constructor(name, description, key, lines, options, id, version){
 		this.segments = new Map();
 		if(arguments.length < 3){
 			this.start = null;
 		}else if(arguments.length < 4){
-			this.start = new storySegment();
+			this.start = new segment();
 			this.segments.set(key, this.start);
 		}else if(arguments.length < 5){
-			this.start = new storySegment(lines);
+			this.start = new segment(lines);
 			this.segments.set(key, this.start);
 		}else{
-			this.start = new storySegment(lines, options);
+			this.start = new segment(lines, options);
 			this.segments.set(key, this.start);
 		}
 		this.current = this.start;
@@ -69,8 +69,8 @@ class Story{
 	/*member functions*/
 	/* Creates and adds a new segment, adds to segments*/ 
 	addSegment(id, lines, options, jump){
-		var segment = new storySegment(lines, options, jump);
-		this.segments.set(id, segment);
+		var tempSegment = new segment(lines, options, jump);
+		this.segments.set(id, tempSegment);
 		if(this.start === null){
 			this.start = segment;
 			this.current = segment;
@@ -79,9 +79,9 @@ class Story{
 
 	/*finds segment and adds option to it*/
 	addOption(key, option){
-		var segment = this.segments.get(key);
-		if(segment != undefined){
-			segment.addOption(key, option);
+		var tempSegment = this.segments.get(key);
+		if(tempSegment != undefined){
+			tempSegment.addOption(key, option);
 		}
 	}
 
@@ -115,4 +115,4 @@ class Story{
 	 */
 }
 
-module.exports = Story;
+module.exports = structure;
