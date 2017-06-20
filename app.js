@@ -32,11 +32,11 @@ var bot = new builder.UniversalBot(connector, function (session) {
 var structure = parser('structure_files/story1.txt');
 
 // Construct LUIS app and recognizer
-var LUIS_URL = process.env.LUIS_URL
+var LUIS_URL = process.env.LUIS_URL;
 if(LUIS_URL === ''){
 	buildApp.build(structure);
-	buildApp.emitter.on('done', function(url_){
-		LUIS_URL = url_;
+	buildApp.emitter.on('done', function(url){
+		LUIS_URL = url;
 		var recognizer = new builder.LuisRecognizer(LUIS_URL);
 		bot.recognizer(recognizer);
 	});
@@ -51,3 +51,4 @@ bot.dialog('Help', function(session){
 }).triggerAction({
 	matches: 'Help'
 });
+

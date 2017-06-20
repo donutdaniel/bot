@@ -247,6 +247,7 @@ function deleteApp(appId){
         console.log("Successfully Deleted");
     }).end();
 }
+exports.request = request;
 exports.emitter = emitter;
 exports.url = undefined;
 exports.build = buildApp;
