@@ -64,6 +64,7 @@ class structure{
 		this.description = description;
 		this.id = id;
 		this.version = version;
+		this.optionsList = new Map();
 	}
 
 	/*member functions*/
@@ -110,8 +111,9 @@ class structure{
 	}
 
 	/*member variables:
-	 * start, current, name, description, id
-	 * map of segments
+	 * start , current, name, description, id
+	 * segments [map]
+	 * optionsList [map]
 	 */
 }
 

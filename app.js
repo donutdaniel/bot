@@ -52,3 +52,15 @@ bot.dialog('Help', function(session){
 	matches: 'Help'
 });
 
+// Helper
+structure.optionsList.forEach(function(value, key, map){
+	bot.dialog(key, function(session){
+		structure.proceed(key);
+		for(var i = 0; i < structure.current.lines.length; i++){
+			session.send(structure.current.lines[i]);
+		}
+		session.endDialog();
+	}).triggerAction({
+		matches: key
+	});
+});
