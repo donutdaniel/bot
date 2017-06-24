@@ -4,10 +4,11 @@ class segment{
 	 * options - map of (string key, option object)
 	 * option object - value pair (trigger[], destination)
 	 */
-	constructor(lines = [], options = new Map(), jump = null){
+	constructor(lines = [], options = new Map(), jumpKey = null){
 		this.lines = lines;
 		this.options = options;
-		this.jump = jump;
+		this.jumpKey = jumpKey;
+		this.jump = undefined;
 	}
 
 	/*Adds a new option object to options*/
@@ -28,8 +29,9 @@ class segment{
 
 	}
 
-	addJump(jump){
-		this.jump = jump;
+	addJump(jumpKey){
+		this.jumpKey = jumpKey;
+		this.jump = undefined;
 	}
 
 	getDestination(key){
@@ -47,6 +49,7 @@ class segment{
 class structure{
 	constructor(name, description, key, lines, options, id, version){
 		this.segments = new Map();
+		this.optionslist = new Map();
 		if(arguments.length < 3){
 			this.start = null;
 		}else if(arguments.length < 4){
@@ -64,7 +67,6 @@ class structure{
 		this.description = description;
 		this.id = id;
 		this.version = version;
-		this.optionsList = new Map();
 	}
 
 	/*member functions*/
@@ -73,8 +75,8 @@ class structure{
 		var tempSegment = new segment(lines, options, jump);
 		this.segments.set(id, tempSegment);
 		if(this.start === null){
-			this.start = segment;
-			this.current = segment;
+			this.start = tempSegment;
+			this.current = this.start;
 		}
 	}
 
@@ -94,26 +96,33 @@ class structure{
 	/*connect all the segments using key identification. Run after adding all the segments*/
 	connect(){
 		this.segments.forEach(function(value, key, map){
-			value.options.forEach(function(value_o, key_o, map_o){
-				var destSeg = map.get(value_o.destinationKey);
-				value_o.destination = destSeg;
-			});
+			if(value.jumpKey != null){
+				value.jump = map.get(value.jumpKey);
+			}else{
+				value.options.forEach(function(value_o, key_o, map_o){
+					var destSeg = map.get(value_o.destinationKey);
+					value_o.destination = destSeg;
+				});
+			}
 		});
 	}
 
 	/*follows with proceed key and returns the next segment*/
 	proceed(key){
-		var destination = this.currentSegment.options.get(key).destination;
-		if(destination != undefined){
-			this.currentSegment = destination;
+		var next = this.current.options.get(key);
+		if(next != undefined){
+			next = next.destination;
+			this.current = next;
+			return true;
+		}else{
+			return false;
 		}
-		return currentSegment;
 	}
 
 	/*member variables:
 	 * start , current, name, description, id
-	 * segments [map]
-	 * optionsList [map]
+	 * segments [map (id, segment reference)]
+	 * optionsList [map (option name, triggers)]
 	 */
 }
 

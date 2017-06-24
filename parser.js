@@ -27,7 +27,8 @@ function parseHelper(data){
 	}
 	
 	while(index < dataArray.length){
-		if(id = dataArray[index].match(/<segment id=(.*?)>/)[1]){ // match for segment starter
+		if(id = dataArray[index].match(/<segment id=(.*?)>/)){ // match for segment starter
+			id = id[1];
 			// reset variables
 			var lines = new Array(0);
 			var options = new Map();
@@ -60,6 +61,7 @@ function parseHelper(data){
 					if(dataArray[index].match(/<\/jump>/g) === null){
 						// extract jump
 						jump = dataArray[index];
+						index++;
 					}else{
 						throw "Jump fault";
 					}
@@ -70,6 +72,16 @@ function parseHelper(data){
 			}
 			// create and add segment
 			story.addSegment(id, lines, options, jump);
+		}else if(dataArray[index].match(/<optionslist/)){
+			index++;
+			while(dataArray[index].match(/<\/optionslist/g) === null){
+				var optionStr = dataArray[index];
+				var spaceIndex = optionStr.indexOf(" ");
+				var optionKey = optionStr.substring(0, spaceIndex);
+				var optionTriggers = optionStr.substring(optionKey.length+1, optionStr.length).split("/");
+				story.optionslist.set(optionKey, optionTriggers);
+				index++;	
+			}
 		}
 		index++;
 	}
