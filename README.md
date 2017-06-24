@@ -14,8 +14,7 @@ API_KEY
 
 
 ### TODO:  
-build dialogue by  
-1. in text files add a new section below segments to indicate master options list  
-2. remove the trigger phrases next to segment options  
-3. rewrite/add parser.js as necessary  
-3. rewrite/add buildApp.js as necessary (mostly intent part)
+* add default help 
+* remove the trigger phrases next to segment options  
+* rewrite/add parser.js as necessary  
+* rewrite/add buildApp.js as necessary (mostly intent part)
