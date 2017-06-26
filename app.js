@@ -45,18 +45,22 @@ if(LUIS_URL === ''){
 	bot.recognizer(recognizer);
 }
 
-//Helper
+// Construct path through language intents and structure
 structure.optionslist.forEach(function(value, key, map){
 	bot.dialog(key, function(session){
 		var proceed = structure.proceed(key);
-		while(proceed){
-			for(var i = 0; i < structure.current.lines.length; i++){
-				session.send(structure.current.lines[i]);
-			}
-			if(structure.current.jump != undefined){
-				structure.current = structure.current.jump;
-			}else{
-				proceed = false;
+		if(!proceed){
+			session.send('Sorry, I did not understand \'%s\'. Type \'help\' if you need assistance.', session.message.text);
+		}else{
+			while(proceed){
+				for(var i = 0; i < structure.current.lines.length; i++){
+					session.send(structure.current.lines[i]);
+				}
+				if(structure.current.jump != undefined){
+					structure.current = structure.current.jump;
+				}else{
+					proceed = false;
+				}
 			}
 		}
 		session.endDialog();
@@ -65,7 +69,6 @@ structure.optionslist.forEach(function(value, key, map){
 	});
 });
 
-// Construct path through language intents and structure
 bot.dialog('Help', function(session){
 	session.endDialog("Hi! This bot is currently in the works. See github for help.");
 }, true).triggerAction({
