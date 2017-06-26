@@ -43,17 +43,11 @@ function parseHelper(data){
 					index++;
 					while(dataArray[index].match(/<\/options>/g) === null){ // loop until option end
 						// extract option
-						var optionStr = dataArray[index];
+						var optionsArray = dataArray[index].split(" ");
 						var option = new Object();
-						var spaceIndex = optionStr.indexOf(" ");
-						var optionKey = optionStr.substring(0, spaceIndex);
-						optionStr = optionStr.substring(spaceIndex+1, optionStr.length);
-						spaceIndex = optionStr.indexOf(" ");
-						option.destinationKey = optionStr.substring(0, spaceIndex);
-						optionStr = optionStr.substring(spaceIndex+1, optionStr.length);
+						option.destinationKey = optionsArray[1];
 						option.destination = undefined;
-						option.triggers = optionStr.split("/");
-						options.set(optionKey, option);
+						options.set(optionsArray[0], option);
 						index++;
 					}
 				}else if(dataArray[index].match(/<jump>/g)){

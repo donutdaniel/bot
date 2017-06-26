@@ -1,8 +1,8 @@
 /*fragments of story to be stored in structure class, not accessable in export*/
 class segment{
 	/* lines - an array of strings to be said in the scene
-	 * options - map of (string key, option object)
-	 * option object - value pair (trigger[], destination)
+	 * options - map of (string key, string destination)
+	 * option object - destinationKey, destination
 	 */
 	constructor(lines = [], options = new Map(), jumpKey = null){
 		this.lines = lines;
@@ -12,30 +12,20 @@ class segment{
 	}
 
 	/*Adds a new option object to options*/
-	addOption(key, destination, triggers = []){
-		var option = new Object();
-		option.destinationKey = destination;
-		option.triggers = triggers;
-		option.destination = undefined; //needs to be connected through story
-		this.options.set(key, option);
-	}
-
-	/*Adds new triggers to option*/
-	addTrigger(key, triggers){
-		var found = this.options.get(key);
-		if(found != undefined){
-			found.triggers.push(triggers);
+	addOption(key, destinationKey, destination = undefined){
+		if(arguments.length < 2){
+			console.log('error adding option');
+			return;
 		}
-
+		var option = new Object();
+		option.destinationKey = destinationKey;
+		option.destination = destination; //can be connected through structure.connect
+		this.options.set(key, option);
 	}
 
 	addJump(jumpKey){
 		this.jumpKey = jumpKey;
 		this.jump = undefined;
-	}
-
-	getDestination(key){
-		return this.options.get(key).destination;
 	}
 
 	/*member variables
@@ -71,8 +61,8 @@ class structure{
 
 	/*member functions*/
 	/* Creates and adds a new segment, adds to segments*/ 
-	addSegment(id, lines, options, jump){
-		var tempSegment = new segment(lines, options, jump);
+	addSegment(id, lines, options, jumpKey){
+		var tempSegment = new segment(lines, options, jumpKey);
 		this.segments.set(id, tempSegment);
 		if(this.start === null){
 			this.start = tempSegment;
@@ -122,7 +112,7 @@ class structure{
 	/*member variables:
 	 * start , current, name, description, id
 	 * segments [map (id, segment reference)]
-	 * optionsList [map (option name, triggers)]
+	 * optionslist [map (option name, triggers)]
 	 */
 }
 

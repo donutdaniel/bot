@@ -132,21 +132,19 @@ function getIntentsCB(structure, data){ // TODO: allow for updating
     // helper variables to make sure process of adding intents has finished
     var intentsAddedSum = 0;
     var totalNewIntents = 0;
-    structure.segments.forEach((value_s, key_s, map_s) => {
-        value_s.options.forEach((value_o, key_o, map_o) => {
-            // Check for duplicates and add in batch
-            if(existingIntents.find((element, index, array) => { return element === key_o; }) === undefined){
-                totalNewIntents++;
-                existingIntents.push(key_o);
-                var intentData = new Object();
-                intentData.name = key_o;
-                console.log("Adding Intent:" + key_o);
-                request(structure, path + '/intents', 'POST', addIntentCB, intentData);
-            }
-            for (var i = 0; i < value_o.triggers.length; i++) {
-                examplesData.push({intentName: key_o, text: value_o.triggers[i]});
-            }
-        });
+    structure.optionslist.forEach((value, key, map) => {
+        // Check for duplicates and add in batch
+        if(existingIntents.find((element, index, array) => { return element === key; }) === undefined){
+            totalNewIntents++;
+            existingIntents.push(key);
+            var intentData = new Object();
+            intentData.name = key;
+            console.log("Adding Intent:" + key);
+            request(structure, path + '/intents', 'POST', addIntentCB, intentData);
+        }
+        for(var i = 0; i < value.length; i++){
+            examplesData.push({intentName: key, text: value[i]});
+        }
     });
     if(totalNewIntents === 0){
         console.log("Batch Adding Labelled Examples");

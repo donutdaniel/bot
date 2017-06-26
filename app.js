@@ -45,13 +45,6 @@ if(LUIS_URL === ''){
 	bot.recognizer(recognizer);
 }
 
-// Construct path through language intents and structure
-bot.dialog('Help', function(session){
-	session.endDialog("Hi! This bot is currently in the works. See github for help.");
-}).triggerAction({
-	matches: 'Help'
-});
-
 //Helper
 structure.optionslist.forEach(function(value, key, map){
 	bot.dialog(key, function(session){
@@ -70,4 +63,11 @@ structure.optionslist.forEach(function(value, key, map){
 	}).triggerAction({
 		matches: key
 	});
+});
+
+// Construct path through language intents and structure
+bot.dialog('Help', function(session){
+	session.endDialog("Hi! This bot is currently in the works. See github for help.");
+}, true).triggerAction({
+	matches: 'Help'
 });
