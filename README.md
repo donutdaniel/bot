@@ -11,10 +11,11 @@ MICROSOFT_APP_PASSWORD
 LUIS_URL
 API_KEY
 
-
+### Long-term TODO:
+* Interface story (structure) creation
+* Export to some kind of app
 
 ### TODO:  
-* add default help 
-* remove the trigger phrases next to segment options  
-* rewrite/add parser.js as necessary  
-* rewrite/add buildApp.js as necessary (mostly intent part)
+* make sure user text does not go through while building luis app
+* begin exploring interfacing and export options
+* better stories
