@@ -2,6 +2,8 @@
 require('dotenv-extended').load();
 var restify = require('restify');
 var builder = require('botbuilder');
+var events = require('events');
+var emitter = new events();
 
 // Custom js
 var structure = require('./structure.js');
@@ -24,8 +26,25 @@ var connector = new builder.ChatConnector({
 server.post('/api/messages', connector.listen());
 
 // Set default response
-var bot = new builder.UniversalBot(connector, function (session) {
-    session.send('Sorry, I did not understand \'%s\'. Type \'help\' if you need assistance.', session.message.text);
+var start = true;
+var bot = new builder.UniversalBot(connector, function(session){
+	if(start){
+		var proceed = true;
+		while(proceed){
+			for(var i = 0; i < structure.current.lines.length; i++){
+				session.send(structure.current.lines[i]);
+			}
+			if(structure.current.jump != undefined){
+				structure.current = structure.current.jump;
+			}else{
+				proceed = false;
+			}
+		}
+		start = false;
+		emitter.emit('initiated');
+	}else{
+		session.send('Sorry, I did not understand \'%s\'. Type \'help\' if you need assistance.', session.message.text);
+	}
 });
 
 // Parse text file into structure
@@ -37,15 +56,16 @@ if(LUIS_URL === ''){
 	buildApp.build(structure);
 	buildApp.emitter.on('done', function(url){
 		LUIS_URL = url;
-		var recognizer = new builder.LuisRecognizer(LUIS_URL);
-		bot.recognizer(recognizer);
 	});
-}else{
-	recognizer = new builder.LuisRecognizer(LUIS_URL);
-	bot.recognizer(recognizer);
 }
+emitter.on('initiated', function(){
+	var recognizer = new builder.LuisRecognizer(LUIS_URL);
+	bot.recognizer(recognizer);
+})
 
 // Construct path through language intents and structure
+
+//helper functions
 structure.optionslist.forEach(function(value, key, map){
 	bot.dialog(key, function(session){
 		var proceed = structure.proceed(key);
@@ -53,8 +73,15 @@ structure.optionslist.forEach(function(value, key, map){
 			session.send('Sorry, I did not understand \'%s\'. Type \'help\' if you need assistance.', session.message.text);
 		}else{
 			while(proceed){
+				var lines = structure.current.lines;
+				var delay = 0;
 				for(var i = 0; i < structure.current.lines.length; i++){
-					session.send(structure.current.lines[i]);
+					delay = lines[i].length * 30;
+					for(var j = 0; j < delay/1500; j++){
+						session.sendTyping();
+						session.delay(1500);
+					}
+					session.send(lines[i]);
 				}
 				if(structure.current.jump != undefined){
 					structure.current = structure.current.jump;
