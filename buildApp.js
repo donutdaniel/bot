@@ -35,11 +35,12 @@ function request(structure, path = '', method = 'GET', callback = dummyCB, data 
             console.log('error');
         })
         res.on('data', (d) =>{
-            var dJSON = JSON.parse(d);
+            var dJSON = JSON.parse(d);           
             if(dJSON === null || dJSON === undefined){
                 callback(structure, d);
             }else if(dJSON.error != undefined){ // top level error
                 console.log(dJSON.error);
+                console.log(JSON.stringify(data));
                 throw Error(dJSON.error.message);
             }else if(dJSON.statusCode != undefined){ // general error
                 if(dJSON.statusCode === 429){
@@ -68,8 +69,10 @@ function dummyCB(structure, data){
     // do nothing
 }
 
-function dislpayCB(structure, data){
-    console.log(data.toString());
+function displayCB(structure, data){
+    if(data != null){
+        console.log(data.toString());
+    }
 }
 
 /*Iterates through each existing app, matching names.
@@ -87,10 +90,11 @@ function getAppCB(structure, data){
             // Matched
             var id = dJSON[i].id;
             structure.id = id;
+            structure.version = dJSON[i].endpoints.PRODUCTION.versionId;
             path = path + id;
             if(dJSON[i].endpoints.PRODUCTION.assignedEndpointKey === ""){
                 console.log("Assigning Subscription Key");
-                request(structure, path, 'PUT', dummyCB, process.env.SUBSCRIPTION_KEY, true);
+                request(structure, path + '/versions/' + structure.version + '/assignedkey', 'PUT', displayCB, process.env.SUBSCRIPTION_KEY);
             }
             console.log("Updating App: " + structure.name);
             request(structure, path, 'PUT', updateAppCB, appData, true);
@@ -108,11 +112,11 @@ function getAppCB(structure, data){
 function addAppCB(structure, data){
     var dJSON = JSON.parse(data);
     structure.id = dJSON;
-    var path = universalPath + structure.id + '/versions/' + structure.version + '/intents';
+    var path = universalPath + structure.id + '/versions/' + structure.version;
     console.log("Retrieving Intents List");
-    request(structure, path, 'GET', getIntentsCB);
+    request(structure, path + '/intents', 'GET', getIntentsCB);
     console.log("Assigning Subscription Key");
-    request(structure, path, 'PUT', dummyCB, process.env.SUBSCRIPTION_KEY, true);
+    request(structure, path + '/assignedkey', 'PUT', dummyCB, process.env.SUBSCRIPTION_KEY);
 }
 
 function updateAppCB(structure, data){
