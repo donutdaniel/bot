@@ -5,18 +5,19 @@ see story.txt for example
   
   
 Necessary .env vars:  
-PORT
-MICROSOFT_APP_ID
-MICROSOFT_APP_PASSWORD
-LUIS_URL
-API_KEY
+PORT  
+MICROSOFT_APP_ID  
+MICROSOFT_APP_PASSWORD  
+LUIS_URL  
+API_KEY  
 
 ### Long-term TODO:
 * Interface story (structure) creation
-* Export to some kind of app
+* Export to some kind of mobile app
 
 ### TODO:  
-* begin exploring interfacing and export options
 * better stories
 * add support for selecting choices using buttons
-* register bot and port to facebook?
+* better language understanding
+* bot has to reset state on every new user instance
+* ability to choose story to begin with (should preload all stories on deploy? have to do it everytime a new one is added or changed)
