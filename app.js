@@ -51,11 +51,11 @@ var bot = new builder.UniversalBot(connector, function(session){
 });
 
 // Parse text file into structure
-var structure = parser('structure_files/story1.txt');
+var structure = parser('structure_files/' + process.env.STRUCTURE_NAME);
 
 // Construct LUIS app and recognizer
 var LUIS_URL = process.env.LUIS_URL;
-if(LUIS_URL === ''){
+if(LUIS_URL === null ||LUIS_URL === ''){
 	buildApp.build(structure);
 	buildApp.emitter.on('done', function(url){
 		LUIS_URL = url;
