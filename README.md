@@ -16,6 +16,7 @@ API_KEY
 * Export to some kind of app
 
 ### TODO:  
-* make sure user text does not go through while building luis app
 * begin exploring interfacing and export options
 * better stories
+* add support for selecting choices using buttons
+* register bot and port to facebook?
