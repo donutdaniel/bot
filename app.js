@@ -25,10 +25,13 @@ var connector = new builder.ChatConnector({
 // Listen for messages from users 
 server.post('/api/messages', connector.listen());
 
-// Set default response
-var start = true;
+// Create bot
+var ready = false;
+var atStart = true;
 var bot = new builder.UniversalBot(connector, function(session){
-	if(start){
+	if(!ready){
+		session.send('Please wait... one or more items are still being processed');
+	}else if(atStart){
 		var proceed = true;
 		while(proceed){
 			for(var i = 0; i < structure.current.lines.length; i++){
@@ -40,8 +43,8 @@ var bot = new builder.UniversalBot(connector, function(session){
 				proceed = false;
 			}
 		}
-		start = false;
-		emitter.emit('initiated');
+		atStart = false;
+		emitter.emit('recognize');
 	}else{
 		session.send('Sorry, I did not understand \'%s\'. Type \'help\' if you need assistance.', session.message.text);
 	}
@@ -56,16 +59,17 @@ if(LUIS_URL === ''){
 	buildApp.build(structure);
 	buildApp.emitter.on('done', function(url){
 		LUIS_URL = url;
+		ready = true;
 	});
+}else{
+	ready = true;
 }
-emitter.on('initiated', function(){
+emitter.on('recognize', function(){
 	var recognizer = new builder.LuisRecognizer(LUIS_URL);
 	bot.recognizer(recognizer);
 })
 
 // Construct path through language intents and structure
-
-//helper functions
 structure.optionslist.forEach(function(value, key, map){
 	bot.dialog(key, function(session){
 		var proceed = structure.proceed(key);
