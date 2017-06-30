@@ -33,9 +33,17 @@ var bot = new builder.UniversalBot(connector, function(session){
 		session.send('Please wait... one or more items are still being processed');
 	}else if(atStart){
 		var proceed = true;
+		var lines;
+		var delay;
 		while(proceed){
-			for(var i = 0; i < structure.current.lines.length; i++){
-				session.send(structure.current.lines[i]);
+			lines = structure.current.lines;
+			for(var i = 0; i < lines.length; i++){
+				delay = lines[i].length * 30;
+				for(var j = 0; j < delay/1500; j++){
+					session.sendTyping();
+					session.delay(1500);
+				}
+				session.send(lines[i]);
 			}
 			if(structure.current.jump != undefined){
 				structure.current = structure.current.jump;
@@ -46,7 +54,7 @@ var bot = new builder.UniversalBot(connector, function(session){
 		atStart = false;
 		emitter.emit('recognize');
 	}else{
-		session.send('Sorry, I did not understand \'%s\'. Type \'help\' if you need assistance.', session.message.text);
+		session.send('Sorry, I did not understand \'%s\'. Type \'help\' if you need assistance or \'repeat\' if you want me to repeat what I said', session.message.text);
 	}
 });
 
@@ -74,12 +82,13 @@ structure.optionslist.forEach(function(value, key, map){
 	bot.dialog(key, function(session){
 		var proceed = structure.proceed(key);
 		if(!proceed){
-			session.send('Sorry, I did not understand \'%s\'. Type \'help\' if you need assistance.', session.message.text);
+			session.send('Sorry, I did not understand \'%s\'. Type \'help\' if you need assistance or \'repeat\' if you want me to repeat what I said', session.message.text);
 		}else{
+			var lines;
+			var delay = 0;
 			while(proceed){
-				var lines = structure.current.lines;
-				var delay = 0;
-				for(var i = 0; i < structure.current.lines.length; i++){
+				lines = structure.current.lines;
+				for(var i = 0; i < lines.length; i++){
 					delay = lines[i].length * 30;
 					for(var j = 0; j < delay/1500; j++){
 						session.sendTyping();
@@ -105,3 +114,19 @@ bot.dialog('Help', function(session){
 }, true).triggerAction({
 	matches: 'Help'
 });
+
+bot.dialog('RepeatDialog', function(session){
+	var lines = structure.current.lines;
+	var delay;
+	for(var i = 0; i < lines.length; i++){
+		delay = lines[i].length * 30;
+		for(var j = 0; j < delay/1500; j++){
+			session.sendTyping();
+			session.delay(1500);
+		}
+		session.send(lines[i]);
+	}
+	session.endDialog();
+}, true).triggerAction({
+	matches: /repeat/
+})
