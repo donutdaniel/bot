@@ -42,5 +42,4 @@ Look Look around/Walk around
 Open Open/Yes/Open it/Yes open it/Open the box
 Close No/Don't open it/No, don't open it/Don't optn the box
 Restart restart
-Help Help/help me/help me please
 </optionslist>

@@ -26,8 +26,9 @@ var connector = new builder.ChatConnector({
 server.post('/api/messages', connector.listen());
 
 // Create bot
-var ready = false;
-var atStart = true;
+var ready = false; //used to see if LUIS is ready yet
+var atStart = true; //one time check to see if at start
+var optionsOn = false; //controls toggling of popup options
 var bot = new builder.UniversalBot(connector, function(session){
 	if(!ready){
 		session.send('Please wait... one or more items are still being processed');
@@ -48,6 +49,13 @@ var bot = new builder.UniversalBot(connector, function(session){
 			if(structure.current.jump != undefined){
 				structure.current = structure.current.jump;
 			}else{
+				if(optionsOn){
+					var promptOptions = [];
+					structure.current.options.forEach(function(value, key, map){
+						promptOptions.push(key);
+					});
+					builder.Prompts.choice(session, 'Choices:', promptOptions, {listStyle: builder.ListStyle.button});
+				}
 				proceed = false;
 			}
 		}
@@ -99,6 +107,13 @@ structure.optionslist.forEach(function(value, key, map){
 				if(structure.current.jump != undefined){
 					structure.current = structure.current.jump;
 				}else{
+					if(optionsOn){
+						var promptOptions = [];
+						structure.current.options.forEach(function(value, key, map){
+							promptOptions.push(key);
+						});
+						builder.Prompts.choice(session, 'Choices:', promptOptions, {listStyle: builder.ListStyle.button});
+					}
 					proceed = false;
 				}
 			}
@@ -109,10 +124,47 @@ structure.optionslist.forEach(function(value, key, map){
 	});
 });
 
-bot.dialog('Help', function(session){
-	session.endDialog("Hi! This bot is currently in the works. See github for help.");
+bot.dialog('HelpDialog', function(session){
+	session.send('Hi! This is still an experimental bot. Many bugs. Universal commands are:');
+	session.send('\'reset\': brings the conversation back to the start.');
+	session.send('\'repeat\': repeats the last spoken dialogue.');
+	session.send('\'options\': toggles choice prompts in button format.');
+	session.endDialog();
 }, true).triggerAction({
-	matches: 'Help'
+	matches: /help/
+});
+
+bot.dialog('ResetConversation', function(session){
+	session.send('Resetting...');
+	structure.current = structure.start;
+	var proceed = true;
+	var lines;
+	var delay = 0;
+	while(proceed){
+		lines = structure.current.lines;
+		for(var i = 0; i < lines.length; i++){
+			delay = lines[i].length * 30;
+			for(var j = 0; j < delay/1500; j++){
+				session.sendTyping();
+				session.delay(1500);
+			}
+			session.send(lines[i]);
+		}
+		if(structure.current.jump != undefined){
+			structure.current = structure.current.jump;
+		}else{
+			if(optionsOn){
+				var promptOptions = [];
+				structure.current.options.forEach(function(value, key, map){
+					promptOptions.push(key);
+				});
+				builder.Prompts.choice(session, 'Choices:', promptOptions, {listStyle: builder.ListStyle.button});
+			}
+			proceed = false;
+		}
+	}
+}, true).triggerAction({
+	matches: /reset/
 });
 
 bot.dialog('RepeatDialog', function(session){
@@ -126,7 +178,31 @@ bot.dialog('RepeatDialog', function(session){
 		}
 		session.send(lines[i]);
 	}
+	if(optionsOn){
+		var promptOptions = [];
+		structure.current.options.forEach(function(value, key, map){
+			promptOptions.push(key);
+		});
+		builder.Prompts.choice(session, 'Choices:', promptOptions, {listStyle: builder.ListStyle.button});
+	}
 	session.endDialog();
 }, true).triggerAction({
 	matches: /repeat/
-})
+});
+
+bot.dialog('OptionsOn', function(session){
+	optionsOn = !optionsOn;
+	if(optionsOn === true){
+		session.send('Turning options on');
+		var promptOptions = [];
+		structure.current.options.forEach(function(value, key, map){
+			promptOptions.push(key);
+		});
+		builder.Prompts.choice(session, 'Choices:', promptOptions, {listStyle: builder.ListStyle.button});
+	}else{
+		session.send('Turning options off');
+	}
+	session.endDialog();
+}, true).triggerAction({
+	matches: /options/
+});

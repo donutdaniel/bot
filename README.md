@@ -1,7 +1,7 @@
-# Storybot
+# botbot
 
-### parsing: story.txt has to be be in this specific format  
-see story.txt for example  
+### parsing: txt has to be be in this specific format  
+see /structure_files for example  
   
   
 Necessary .env vars:  
@@ -14,11 +14,10 @@ API_KEY
 ### Long-term TODO:
 * Interface story (structure) creation
 * Export to some kind of mobile app
-
-### TODO:  
 * better stories
-* add support for selecting choices using buttons
-* add ability for bot to repeat itself
-* better language understanding
+
+### TODO:
 * bot has to reset state on every new user instance
+* add support for selecting choices using buttons (gotta link the buttons)
+* better language understanding (including regex understanding)
 * ability to choose story to begin with (should preload all stories on deploy? have to do it everytime a new one is added or changed)
