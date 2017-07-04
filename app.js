@@ -209,7 +209,7 @@ function activateOptionBtns(session){
 		session.send('Error retrieving data. Please type \'reset\' to reset the bot');
 	}else{
 		var promptOptions = [];
-		found.options.forEach(function(key){
+		found.options.forEach(function(value, key, map){
 			promptOptions.push(key);
 		});
 		builder.Prompts.choice(session, 'Choices:', promptOptions, {listStyle: builder.ListStyle.button});

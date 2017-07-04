@@ -1,10 +1,10 @@
 /*fragments of story to be stored in structure class, not accessable in export*/
 class segment{
 	/* lines - an array of strings to be said in the scene
-	 * options - map of (string key, string destination)
+	 * options - array of (string key, option object)
 	 * option object - destinationKey, destination
 	 */
-	constructor(lines = [], options = [], jumpKey = null, id = undefined){
+	constructor(lines = [], options = new Map(), jumpKey = null, id = undefined){
 		this.lines = lines;
 		this.options = options;
 		this.jumpKey = jumpKey;
@@ -77,7 +77,7 @@ class structure{
 			if(value.jumpKey != null){
 				value.jump = map.get(value.jumpKey);
 			}else{
-				value.options.forEach(function(value_o, key_o, arr_o){
+				value.options.forEach(function(value_o, key_o, map_o){
 					var destSeg = map.get(value_o.destinationKey);
 					value_o.destination = destSeg;
 				});
@@ -89,7 +89,7 @@ class structure{
 	proceed(segmentID, key){
 		var next = this.segments.get(segmentID);
 		if(next != undefined){
-			next = next.options[key];
+			next = next.options.get(key);
 			if(next != undefined){
 				next = next.destination;
 			}

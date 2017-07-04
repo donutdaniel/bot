@@ -31,7 +31,7 @@ function parseHelper(data){
 			id = id[1];
 			// reset variables
 			var lines = new Array(0);
-			var options = new Array(0);
+			var options = new Map();
 			jump = null;
 			index++;
 			if(id.length < 1){
@@ -47,7 +47,7 @@ function parseHelper(data){
 						var option = new Object();
 						option.destinationKey = optionsArray[1];
 						option.destination = undefined;
-						options[optionsArray[0]] = option;
+						options.set(optionsArray[0], option);
 						index++;
 					}
 				}else if(dataArray[index].match(/<jump>/g)){
