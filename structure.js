@@ -4,11 +4,12 @@ class segment{
 	 * options - map of (string key, string destination)
 	 * option object - destinationKey, destination
 	 */
-	constructor(lines = [], options = new Map(), jumpKey = null){
+	constructor(lines = [], options = [], jumpKey = null, id = undefined){
 		this.lines = lines;
 		this.options = options;
 		this.jumpKey = jumpKey;
 		this.jump = undefined;
+		this.id = id;
 	}
 
 	/*Adds a new option object to options*/
@@ -20,7 +21,7 @@ class segment{
 		var option = new Object();
 		option.destinationKey = destinationKey;
 		option.destination = destination; //can be connected through structure.connect
-		this.options.set(key, option);
+		this.options[key] = option;
 	}
 
 	addJump(jumpKey){
@@ -50,7 +51,7 @@ class structure{
 	/*member functions*/
 	/* Creates and adds a new segment, adds to segments*/ 
 	addSegment(id, lines, options, jumpKey){
-		var tempSegment = new segment(lines, options, jumpKey);
+		var tempSegment = new segment(lines, options, jumpKey, id);
 		this.segments.set(id, tempSegment);
 		if(this.start === undefined){
 			this.start = tempSegment;
@@ -76,7 +77,7 @@ class structure{
 			if(value.jumpKey != null){
 				value.jump = map.get(value.jumpKey);
 			}else{
-				value.options.forEach(function(value_o, key_o, map_o){
+				value.options.forEach(function(value_o, key_o, arr_o){
 					var destSeg = map.get(value_o.destinationKey);
 					value_o.destination = destSeg;
 				});
@@ -85,12 +86,20 @@ class structure{
 	}
 
 	/*follows with proceed key and returns the next segment*/
-	proceed(segment, key){
-		var next = segment.options.get(key);
+	proceed(segmentID, key){
+		var next = this.segments.get(segmentID);
 		if(next != undefined){
-			next = next.destination;
+			next = next.options[key];
+			if(next != undefined){
+				next = next.destination;
+			}
 		}
 		return next;
+	}
+
+	/*returns the segment based on key*/
+	getSegment(key){
+		return segments.get(key);
 	}
 
 	/*member variables:

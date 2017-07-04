@@ -33,8 +33,7 @@ var bot = new builder.UniversalBot(connector, function(session){
 	if(!ready){
 		session.send('Please wait... one or more items are still being processed');
 	}else if(atStart){
-		session.userData.current = structure.start;
-		console.log(session.userData.current);
+		session.userData.current = structure.start.id;
 		var proceed = structure.start;
 		var lines;
 		var delay;
@@ -52,13 +51,9 @@ var bot = new builder.UniversalBot(connector, function(session){
 				proceed = proceed.jump;
 			}else{
 				if(optionsOn){
-					var promptOptions = [];
-					proceed.options.forEach(function(value, key, map){
-						promptOptions.push(key);
-					});
-					builder.Prompts.choice(session, 'Choices:', promptOptions, {listStyle: builder.ListStyle.button});
+					activateOptionBtns(session);
 				}
-				session.userData.current = proceed;
+				session.userData.current = proceed.id;
 				proceed = undefined;
 			}
 		}
@@ -67,6 +62,7 @@ var bot = new builder.UniversalBot(connector, function(session){
 	}else{
 		session.send('Sorry, I did not understand \'%s\'. Type \'help\' if you need assistance or \'repeat\' if you want me to repeat what I said', session.message.text);
 	}
+	session.endDialog();
 });
 
 // Parse text file into structure
@@ -89,10 +85,9 @@ emitter.on('recognize', function(){
 })
 
 // Construct path through language intents and structure
-// session.userData.current is the current segment
-structure.optionslist.forEach(function(value, key, map){
+// session.userData.current is the current segmentID not actual segment
+structure.optionslist.forEach(function(value, key, array){
 	bot.dialog(key, function(session){
-					console.log(session.userData.current);
 		var proceed = structure.proceed(session.userData.current, key);
 		if(proceed === undefined){
 			session.send('Sorry, I did not understand \'%s\'. Type \'help\' if you need assistance or \'repeat\' if you want me to repeat what I said', session.message.text);
@@ -116,14 +111,10 @@ structure.optionslist.forEach(function(value, key, map){
 				}else{
 					// display options
 					if(optionsOn){
-						var promptOptions = [];
-						proceed.options.forEach(function(value, key, map){
-							promptOptions.push(key);
-						});
-						builder.Prompts.choice(session, 'Choices:', promptOptions, {listStyle: builder.ListStyle.button});
+						activateOptionBtns(session);
 					}
 					// save segment before break
-					session.userData.current = proceed;
+					session.userData.current = proceed.id;
 					proceed = undefined;
 				}
 			}
@@ -146,7 +137,7 @@ bot.dialog('HelpDialog', function(session){
 
 bot.dialog('ResetConversation', function(session){
 	session.send('Resetting...');
-	session.userData.current = structure.start;
+	session.userData.current = structure.start.id;
 	var proceed = structure.start;
 	var lines;
 	var delay;
@@ -164,13 +155,9 @@ bot.dialog('ResetConversation', function(session){
 			proceed = proceed.jump;
 		}else{
 			if(optionsOn){
-				var promptOptions = [];
-				proceed.options.forEach(function(value, key, map){
-					promptOptions.push(key);
-				});
-				builder.Prompts.choice(session, 'Choices:', promptOptions, {listStyle: builder.ListStyle.button});
+				activateOptionBtns(session);
 			}
-			session.userData.current = proceed;
+			session.userData.current = proceed.id;
 			proceed = undefined;
 		}
 	}
@@ -179,22 +166,23 @@ bot.dialog('ResetConversation', function(session){
 });
 
 bot.dialog('RepeatDialog', function(session){
-	var lines = session.userData.current.lines;
-	var delay;
-	for(var i = 0; i < lines.length; i++){
-		delay = lines[i].length * 30;
-		for(var j = 0; j < delay/1500; j++){
-			session.sendTyping();
-			session.delay(1500);
+	var found = structure.getSegment(session.userData.current);
+	if(found === undefined){
+		session.send('Error retrieving data. Please type \'reset\' to reset the bot');
+	}else{
+		var lines = found.lines;
+		var delay;
+		for(var i = 0; i < lines.length; i++){
+			delay = lines[i].length * 30;
+			for(var j = 0; j < delay/1500; j++){
+				session.sendTyping();
+				session.delay(1500);
+			}
+			session.send(lines[i]);
 		}
-		session.send(lines[i]);
-	}
-	if(optionsOn){
-		var promptOptions = [];
-		session.userData.current.options.forEach(function(value, key, map){
-			promptOptions.push(key);
-		});
-		builder.Prompts.choice(session, 'Choices:', promptOptions, {listStyle: builder.ListStyle.button});
+		if(optionsOn){
+			activateOptionBtns(session);
+		}
 	}
 	session.endDialog();
 }, true).triggerAction({
@@ -203,13 +191,9 @@ bot.dialog('RepeatDialog', function(session){
 
 bot.dialog('OptionsOn', function(session){
 	optionsOn = !optionsOn;
-	if(optionsOn === true){
+	if(optionsOn){
 		session.send('Turning options on');
-		var promptOptions = [];
-		session.userData.current.options.forEach(function(value, key, map){
-			promptOptions.push(key);
-		});
-		builder.Prompts.choice(session, 'Choices:', promptOptions, {listStyle: builder.ListStyle.button});
+		activateOptionBtns(session);
 	}else{
 		session.send('Turning options off');
 	}
@@ -217,3 +201,17 @@ bot.dialog('OptionsOn', function(session){
 }, true).triggerAction({
 	matches: /options/
 });
+
+// Helper functions
+function activateOptionBtns(session){
+	var found = structure.getSegment(session.userData.current);
+	if(found === undefined){
+		session.send('Error retrieving data. Please type \'reset\' to reset the bot');
+	}else{
+		var promptOptions = [];
+		found.options.forEach(function(key){
+			promptOptions.push(key);
+		});
+		builder.Prompts.choice(session, 'Choices:', promptOptions, {listStyle: builder.ListStyle.button});
+	}
+}
