@@ -33,11 +33,13 @@ var bot = new builder.UniversalBot(connector, function(session){
 	if(!ready){
 		session.send('Please wait... one or more items are still being processed');
 	}else if(atStart){
-		var proceed = true;
+		session.userData.current = structure.start;
+		console.log(session.userData.current);
+		var proceed = structure.start;
 		var lines;
 		var delay;
-		while(proceed){
-			lines = structure.current.lines;
+		while(proceed != undefined){
+			lines = proceed.lines;
 			for(var i = 0; i < lines.length; i++){
 				delay = lines[i].length * 30;
 				for(var j = 0; j < delay/1500; j++){
@@ -46,17 +48,18 @@ var bot = new builder.UniversalBot(connector, function(session){
 				}
 				session.send(lines[i]);
 			}
-			if(structure.current.jump != undefined){
-				structure.current = structure.current.jump;
+			if(proceed.jump != undefined){
+				proceed = proceed.jump;
 			}else{
 				if(optionsOn){
 					var promptOptions = [];
-					structure.current.options.forEach(function(value, key, map){
+					proceed.options.forEach(function(value, key, map){
 						promptOptions.push(key);
 					});
 					builder.Prompts.choice(session, 'Choices:', promptOptions, {listStyle: builder.ListStyle.button});
 				}
-				proceed = false;
+				session.userData.current = proceed;
+				proceed = undefined;
 			}
 		}
 		atStart = false;
@@ -86,16 +89,19 @@ emitter.on('recognize', function(){
 })
 
 // Construct path through language intents and structure
+// session.userData.current is the current segment
 structure.optionslist.forEach(function(value, key, map){
 	bot.dialog(key, function(session){
-		var proceed = structure.proceed(key);
-		if(!proceed){
+					console.log(session.userData.current);
+		var proceed = structure.proceed(session.userData.current, key);
+		if(proceed === undefined){
 			session.send('Sorry, I did not understand \'%s\'. Type \'help\' if you need assistance or \'repeat\' if you want me to repeat what I said', session.message.text);
 		}else{
 			var lines;
 			var delay = 0;
-			while(proceed){
-				lines = structure.current.lines;
+			while(proceed != undefined){
+				lines = proceed.lines;
+				// send lines
 				for(var i = 0; i < lines.length; i++){
 					delay = lines[i].length * 30;
 					for(var j = 0; j < delay/1500; j++){
@@ -104,17 +110,21 @@ structure.optionslist.forEach(function(value, key, map){
 					}
 					session.send(lines[i]);
 				}
-				if(structure.current.jump != undefined){
-					structure.current = structure.current.jump;
+				// check for jump
+				if(proceed.jump != undefined){
+					proceed = proceed.jump;
 				}else{
+					// display options
 					if(optionsOn){
 						var promptOptions = [];
-						structure.current.options.forEach(function(value, key, map){
+						proceed.options.forEach(function(value, key, map){
 							promptOptions.push(key);
 						});
 						builder.Prompts.choice(session, 'Choices:', promptOptions, {listStyle: builder.ListStyle.button});
 					}
-					proceed = false;
+					// save segment before break
+					session.userData.current = proceed;
+					proceed = undefined;
 				}
 			}
 		}
@@ -136,12 +146,12 @@ bot.dialog('HelpDialog', function(session){
 
 bot.dialog('ResetConversation', function(session){
 	session.send('Resetting...');
-	structure.current = structure.start;
-	var proceed = true;
+	session.userData.current = structure.start;
+	var proceed = structure.start;
 	var lines;
-	var delay = 0;
-	while(proceed){
-		lines = structure.current.lines;
+	var delay;
+	while(proceed != undefined){
+		lines = proceed.lines;
 		for(var i = 0; i < lines.length; i++){
 			delay = lines[i].length * 30;
 			for(var j = 0; j < delay/1500; j++){
@@ -150,17 +160,18 @@ bot.dialog('ResetConversation', function(session){
 			}
 			session.send(lines[i]);
 		}
-		if(structure.current.jump != undefined){
-			structure.current = structure.current.jump;
+		if(proceed.jump != undefined){
+			proceed = proceed.jump;
 		}else{
 			if(optionsOn){
 				var promptOptions = [];
-				structure.current.options.forEach(function(value, key, map){
+				proceed.options.forEach(function(value, key, map){
 					promptOptions.push(key);
 				});
 				builder.Prompts.choice(session, 'Choices:', promptOptions, {listStyle: builder.ListStyle.button});
 			}
-			proceed = false;
+			session.userData.current = proceed;
+			proceed = undefined;
 		}
 	}
 }, true).triggerAction({
@@ -168,7 +179,7 @@ bot.dialog('ResetConversation', function(session){
 });
 
 bot.dialog('RepeatDialog', function(session){
-	var lines = structure.current.lines;
+	var lines = session.userData.current.lines;
 	var delay;
 	for(var i = 0; i < lines.length; i++){
 		delay = lines[i].length * 30;
@@ -180,7 +191,7 @@ bot.dialog('RepeatDialog', function(session){
 	}
 	if(optionsOn){
 		var promptOptions = [];
-		structure.current.options.forEach(function(value, key, map){
+		session.userData.current.options.forEach(function(value, key, map){
 			promptOptions.push(key);
 		});
 		builder.Prompts.choice(session, 'Choices:', promptOptions, {listStyle: builder.ListStyle.button});
@@ -195,7 +206,7 @@ bot.dialog('OptionsOn', function(session){
 	if(optionsOn === true){
 		session.send('Turning options on');
 		var promptOptions = [];
-		structure.current.options.forEach(function(value, key, map){
+		session.userData.current.options.forEach(function(value, key, map){
 			promptOptions.push(key);
 		});
 		builder.Prompts.choice(session, 'Choices:', promptOptions, {listStyle: builder.ListStyle.button});

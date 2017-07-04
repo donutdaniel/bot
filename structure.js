@@ -37,22 +37,10 @@ class segment{
  * database of segments is stored as a hashset for easier access
  */
 class structure{
-	constructor(name, description, key, lines, options, id, version){
+	constructor(name, description, id, version){
 		this.segments = new Map();
 		this.optionslist = new Map();
-		if(arguments.length < 3){
-			this.start = null;
-		}else if(arguments.length < 4){
-			this.start = new segment();
-			this.segments.set(key, this.start);
-		}else if(arguments.length < 5){
-			this.start = new segment(lines);
-			this.segments.set(key, this.start);
-		}else{
-			this.start = new segment(lines, options);
-			this.segments.set(key, this.start);
-		}
-		this.current = this.start;
+		this.start = undefined;
 		this.name = name;
 		this.description = description;
 		this.id = id;
@@ -64,9 +52,8 @@ class structure{
 	addSegment(id, lines, options, jumpKey){
 		var tempSegment = new segment(lines, options, jumpKey);
 		this.segments.set(id, tempSegment);
-		if(this.start === null){
+		if(this.start === undefined){
 			this.start = tempSegment;
-			this.current = this.start;
 		}
 	}
 
@@ -98,19 +85,16 @@ class structure{
 	}
 
 	/*follows with proceed key and returns the next segment*/
-	proceed(key){
-		var next = this.current.options.get(key);
+	proceed(segment, key){
+		var next = segment.options.get(key);
 		if(next != undefined){
 			next = next.destination;
-			this.current = next;
-			return true;
-		}else{
-			return false;
 		}
+		return next;
 	}
 
 	/*member variables:
-	 * start , current, name, description, id
+	 * start, name, description, id, version
 	 * segments [map (id, segment reference)]
 	 * optionslist [map (option name, triggers)]
 	 */
