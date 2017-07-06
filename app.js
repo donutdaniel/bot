@@ -28,7 +28,7 @@ server.post('/api/messages', connector.listen());
 // Create bot
 var ready = false; //used to see if LUIS is ready yet
 var atStart = true; //one time check to see if at start
-var optionsOn = false; //controls toggling of popup options
+var optionsOn = true; //controls toggling of popup options
 var bot = new builder.UniversalBot(connector, function(session){
 	if(!ready){
 		session.send('Please wait... one or more items are still being processed');
@@ -212,6 +212,6 @@ function activateOptionBtns(session){
 		found.options.forEach(function(value, key, map){
 			promptOptions.push(key);
 		});
-		builder.Prompts.choice(session, 'Choices:', promptOptions, {listStyle: builder.ListStyle.button});
+		builder.Prompts.choice(session, '\t', promptOptions, {listStyle: builder.ListStyle.button});
 	}
 }

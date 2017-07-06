@@ -72,7 +72,7 @@ class structure{
 	}
 
 	/*connect all the segments using key identification. Run after adding all the segments*/
-	connect(){
+	connect(){-
 		this.segments.forEach(function(value, key, map){
 			if(value.jumpKey != null){
 				value.jump = map.get(value.jumpKey);
@@ -99,7 +99,7 @@ class structure{
 
 	/*returns the segment based on key*/
 	getSegment(key){
-		return segments.get(key);
+		return this.segments.get(key);
 	}
 
 	/*member variables:
