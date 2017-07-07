@@ -212,6 +212,6 @@ function activateOptionBtns(session){
 		found.options.forEach(function(value, key, map){
 			promptOptions.push(key);
 		});
-		builder.Prompts.choice(session, '\t', promptOptions, {listStyle: builder.ListStyle.button});
+		builder.Prompts.choice(session, '\n', promptOptions, {listStyle: builder.ListStyle.button});
 	}
 }
