@@ -50,11 +50,11 @@ var bot = new builder.UniversalBot(connector, function(session){
 			if(proceed.jump != undefined){
 				proceed = proceed.jump;
 			}else{
+				session.userData.current = proceed.id;
+				proceed = undefined;
 				if(optionsOn){
 					activateOptionBtns(session);
 				}
-				session.userData.current = proceed.id;
-				proceed = undefined;
 			}
 		}
 		atStart = false;
@@ -109,13 +109,13 @@ structure.optionslist.forEach(function(value, key, array){
 				if(proceed.jump != undefined){
 					proceed = proceed.jump;
 				}else{
+					// save segment before break
+					session.userData.current = proceed.id;
+					proceed = undefined;
 					// display options
 					if(optionsOn){
 						activateOptionBtns(session);
 					}
-					// save segment before break
-					session.userData.current = proceed.id;
-					proceed = undefined;
 				}
 			}
 		}
@@ -154,11 +154,11 @@ bot.dialog('ResetConversation', function(session){
 		if(proceed.jump != undefined){
 			proceed = proceed.jump;
 		}else{
+			session.userData.current = proceed.id;
+			proceed = undefined;
 			if(optionsOn){
 				activateOptionBtns(session);
 			}
-			session.userData.current = proceed.id;
-			proceed = undefined;
 		}
 	}
 }, true).triggerAction({
