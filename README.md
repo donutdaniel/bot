@@ -18,7 +18,6 @@ API_KEY
 
 ### TODO:
 * get rid of choices text, escape chars cause errors
-* add support for selecting choices using buttons (gotta link the buttons)
 * better language understanding (including regex understanding)
 * ability to choose story to begin with (should preload all stories on deploy? have to do it everytime a new one is added or changed)
 
