@@ -29,41 +29,47 @@ server.post('/api/messages', connector.listen());
 var ready = false; //used to see if LUIS is ready yet
 var atStart = true; //one time check to see if at start
 var optionsOn = true; //controls toggling of popup options
-var bot = new builder.UniversalBot(connector, function(session){
-	if(!ready){
-		session.send('Please wait... one or more items are still being processed');
-	}else if(atStart){
-		session.userData.current = structure.start.id;
-		var proceed = structure.start;
-		var lines;
-		var delay;
-		while(proceed != undefined){
-			lines = proceed.lines;
-			for(var i = 0; i < lines.length; i++){
-				delay = lines[i].length * 30;
-				for(var j = 0; j < delay/1500; j++){
-					session.sendTyping();
-					session.delay(1500);
+var bot = new builder.UniversalBot(connector, [
+	function(session){
+		if(!ready){
+			session.send('Please wait... one or more items are still being processed');
+			session.endDialog();
+		}else if(atStart){
+			session.userData.current = structure.start.id;
+			var proceed = structure.start;
+			var lines;
+			var delay;
+			while(proceed != undefined){
+				lines = proceed.lines;
+				for(var i = 0; i < lines.length; i++){
+					delay = lines[i].length * 30;
+					for(var j = 0; j < delay/1500; j++){
+						session.sendTyping();
+						session.delay(1500);
+					}
+					session.send(lines[i]);
 				}
-				session.send(lines[i]);
+				if(proceed.jump != undefined){
+					proceed = proceed.jump;
+				}else{
+					session.userData.current = proceed.id;
+					proceed = undefined;
+				}
 			}
-			if(proceed.jump != undefined){
-				proceed = proceed.jump;
+			atStart = false;
+			emitter.emit('recognize');
+			if(optionsOn){
+				activateOptionBtns(session);
 			}else{
-				session.userData.current = proceed.id;
-				proceed = undefined;
-				if(optionsOn){
-					activateOptionBtns(session);
-				}
+				session.endDialog();
 			}
+		}else{
+			session.send('Sorry, I did not understand \'%s\'. Type \'help\' if you need assistance or \'repeat\' if you want me to repeat what I said', session.message.text);
+			session.endDialog();
 		}
-		atStart = false;
-		emitter.emit('recognize');
-	}else{
-		session.send('Sorry, I did not understand \'%s\'. Type \'help\' if you need assistance or \'repeat\' if you want me to repeat what I said', session.message.text);
-	}
-	session.endDialog();
-});
+	},
+	optionResults
+]);
 
 // Parse text file into structure
 var structure = parser('structure_files/' + process.env.STRUCTURE_NAME);
@@ -87,44 +93,49 @@ emitter.on('recognize', function(){
 // Construct path through language intents and structure
 // session.userData.current is the current segmentID not actual segment
 structure.optionslist.forEach(function(value, key, array){
-	bot.dialog(key, function(session){
-		var proceed = structure.proceed(session.userData.current, key);
-		if(proceed === undefined){
-			session.send('Sorry, I did not understand \'%s\'. Type \'help\' if you need assistance or \'repeat\' if you want me to repeat what I said', session.message.text);
-		}else{
-			var lines;
-			var delay = 0;
-			while(proceed != undefined){
-				lines = proceed.lines;
-				// send lines
-				for(var i = 0; i < lines.length; i++){
-					delay = lines[i].length * 30;
-					for(var j = 0; j < delay/1500; j++){
-						session.sendTyping();
-						session.delay(1500);
+	bot.dialog(key, [
+		function(session){
+			var proceed = structure.proceed(session.userData.current, key);
+			if(proceed === undefined){
+				session.send('Sorry, I did not understand \'%s\'. Type \'help\' if you need assistance or \'repeat\' if you want me to repeat what I said', session.message.text);
+			}else{
+				var lines;
+				var delay = 0;
+				while(proceed != undefined){
+					lines = proceed.lines;
+					// send lines
+					for(var i = 0; i < lines.length; i++){
+						delay = lines[i].length * 30;
+						for(var j = 0; j < delay/1500; j++){
+							session.sendTyping();
+							session.delay(1500);
+						}
+						session.send(lines[i]);
 					}
-					session.send(lines[i]);
-				}
-				// check for jump
-				if(proceed.jump != undefined){
-					proceed = proceed.jump;
-				}else{
-					// save segment before break
-					session.userData.current = proceed.id;
-					proceed = undefined;
-					// display options
-					if(optionsOn){
-						activateOptionBtns(session);
+					// check for jump
+					if(proceed.jump != undefined){
+						proceed = proceed.jump;
+					}else{
+						// save segment before break
+						session.userData.current = proceed.id;
+						proceed = undefined;
 					}
 				}
 			}
-		}
-		session.endDialog();
-	}).triggerAction({
+			// display options
+			if(optionsOn){
+				activateOptionBtns(session);
+			}else{
+				session.endDialog();
+			}
+		},
+		optionResults
+	]).triggerAction({
 		matches: key
 	});
 });
 
+// Bot command dialogs
 bot.dialog('HelpDialog', function(session){
 	session.send('Hi! This is still an experimental bot. Many bugs. Universal commands are:');
 	session.send('\'reset\': brings the conversation back to the start.');
@@ -135,70 +146,85 @@ bot.dialog('HelpDialog', function(session){
 	matches: /help/
 });
 
-bot.dialog('ResetConversation', function(session){
-	session.send('Resetting...');
-	session.userData.current = structure.start.id;
-	var proceed = structure.start;
-	var lines;
-	var delay;
-	while(proceed != undefined){
-		lines = proceed.lines;
-		for(var i = 0; i < lines.length; i++){
-			delay = lines[i].length * 30;
-			for(var j = 0; j < delay/1500; j++){
-				session.sendTyping();
-				session.delay(1500);
-			}
-			session.send(lines[i]);
-		}
-		if(proceed.jump != undefined){
-			proceed = proceed.jump;
-		}else{
-			session.userData.current = proceed.id;
-			proceed = undefined;
-			if(optionsOn){
-				activateOptionBtns(session);
-			}
-		}
-	}
-}, true).triggerAction({
-	matches: /reset/
-});
-
-bot.dialog('RepeatDialog', function(session){
-	var found = structure.getSegment(session.userData.current);
-	if(found === undefined){
-		session.send('Error retrieving data. Please type \'reset\' to reset the bot');
-	}else{
-		var lines = found.lines;
+bot.dialog('ResetConversation', [
+	function(session){
+		session.send('Resetting...');
+		session.userData.current = structure.start.id;
+		var proceed = structure.start;
+		var lines;
 		var delay;
-		for(var i = 0; i < lines.length; i++){
-			delay = lines[i].length * 30;
-			for(var j = 0; j < delay/1500; j++){
-				session.sendTyping();
-				session.delay(1500);
+		while(proceed != undefined){
+			lines = proceed.lines;
+			for(var i = 0; i < lines.length; i++){
+				delay = lines[i].length * 30;
+				for(var j = 0; j < delay/1500; j++){
+					session.sendTyping();
+					session.delay(1500);
+				}
+				session.send(lines[i]);
 			}
-			session.send(lines[i]);
+			if(proceed.jump != undefined){
+				proceed = proceed.jump;
+			}else{
+				session.userData.current = proceed.id;
+				proceed = undefined;
+			}
 		}
 		if(optionsOn){
 			activateOptionBtns(session);
+		}else{
+			session.endDialog();
 		}
-	}
-	session.endDialog();
-}, true).triggerAction({
+	},
+	optionResults
+], true).triggerAction({
+	matches: /reset/
+});
+
+bot.dialog('RepeatDialog', [
+	function(session){
+		var found = structure.getSegment(session.userData.current);
+		if(found === undefined){
+			session.send('Error retrieving data. Please type \'reset\' to reset the bot');
+		}else{
+			var lines = found.lines;
+			var delay;
+			for(var i = 0; i < lines.length; i++){
+				delay = lines[i].length * 30;
+				for(var j = 0; j < delay/1500; j++){
+					session.sendTyping();
+					session.delay(1500);
+				}
+				session.send(lines[i]);
+			}
+			if(optionsOn){
+				bot.beginDialog(session.message.address, 'DisplayOptions');
+			}
+		}
+		if(optionsOn){
+			activateOptionBtns(session);
+		}else{
+			session.endDialog();
+		}
+	},
+	optionResults
+], true).triggerAction({
 	matches: /repeat/
 });
 
-bot.dialog('OptionsOn', function(session){
-	optionsOn = !optionsOn;
-	if(optionsOn){
-		session.send('Turning options on');
-		activateOptionBtns(session);
-	}else{
-		session.send('Turning options off');
-	}
-	session.endDialog();
-}, true).triggerAction({
+bot.dialog('OptionsOn', [
+	function(session){
+		optionsOn = !optionsOn;
+		if(optionsOn){
+			session.send('Turning options on');
+			activateOptionBtns(session);
+		}else{
+			session.send('Turning options off');
+			session.endDialog();
+		}
+	},
+	optionResults
+], true).triggerAction({
 	matches: /options/
 });
 
@@ -214,4 +240,11 @@ function activateOptionBtns(session){
 		});
 		builder.Prompts.choice(session, 'Choices:', promptOptions, {listStyle: builder.ListStyle.button});
 	}
+}
+
+function optionResults(session, results){
+	if(results.response){
+		bot.beginDialog(session.message.address, results.response.entity);
+	}
+	session.endDialog();
 }
