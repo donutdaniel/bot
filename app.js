@@ -7,13 +7,15 @@ var emitter = new events();
 
 // Custom js
 var structure = require('./structure.js');
-var parser = require('./parser.js');
-var buildApp = require('./buildApp.js');
+var parser = require('./util/parser.js');
+var buildApp = require('./util/buildApp.js');
+// Enable Website
+require('./webpage/server.js');
 
 // Setup Restify Server
 var server = restify.createServer();
-server.listen(process.env.port || process.env.PORT || 3978, function () {
-   console.log('%s listening to %s', server.name, server.url); 
+server.listen(process.env.port_bot || process.env.PORT_BOT || 3978, function () {
+   console.log('BOT: %s listening to %s', server.name, server.url); 
 });
 
 // Create chat connector for communicating with the Bot Framework Service
@@ -183,6 +185,9 @@ bot.dialog('ResetConversation', [
 
 bot.dialog('RepeatDialog', [
 	function(session){
+		if(atStart){
+			atStart = false;
+		}
 		var found = structure.getSegment(session.userData.current);
 		if(found === undefined){
 			session.send('Error retrieving data. Please type \'reset\' to reset the bot');

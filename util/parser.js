@@ -1,4 +1,4 @@
-var structure = require('./structure.js');
+var structure = require('../structure.js');
 var fs = require('fs');
 
 /*takes the data as a string and returns a story*/
