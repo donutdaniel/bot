@@ -20,6 +20,7 @@
     "botbuilder": "^3.8.3",
     "dotenv-extended": "^2.0.0",
     "events": "^1.1.1",
+    "express": "^4.15.3",
     "fs": "0.0.1-security",
     "restify": "^4.3.0"
   }
