@@ -28,7 +28,7 @@ server.post('/api/messages', connector.listen());
 // Create bot
 var ready = false; //used to see if LUIS is ready yet
 var atStart = true; //one time check to see if at start
-var optionsOn = true; //controls toggling of popup options
+var optionsOn = false; //controls toggling of popup options
 var bot = new builder.UniversalBot(connector, [
 	function(session){
 		if(!ready){
@@ -196,9 +196,6 @@ bot.dialog('RepeatDialog', [
 					session.delay(1500);
 				}
 				session.send(lines[i]);
-			}
-			if(optionsOn){
-				bot.beginDialog(session.message.address, 'DisplayOptions');
 			}
 		}
 		if(optionsOn){
