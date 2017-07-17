@@ -9,6 +9,16 @@ app.get('/', function(req, res){
 	res.sendFile(path + 'index.html');
 });
 
+// middleware for extracting story
+var getStory = function(req, res, next){
+	next();
+}
+app.use(getStory);
+
+app.get('/:id', function(req, res){
+	res.send('your id is: ' + req.params.id);
+});
+
 app.get('*',function(req, res){
   res.send('Error 404: Not Found');
 });

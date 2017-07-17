@@ -20,6 +20,10 @@ API_KEY
 * get rid of choices text, escape chars cause errors
 * better language understanding (including regex understanding)
 * ability to choose story to begin with (should preload all stories on deploy? have to do it everytime a new one is added or changed)
+* explore databasing so can store structures
 
 ### ISSUES:
 * session.userData.current stores id, so each time proceed is called the structure searches for the segment again (inefficient).
+
+### NOTES:
+* site uses bot id as identifier (e.g. /:id)
