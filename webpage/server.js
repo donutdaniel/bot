@@ -2,13 +2,17 @@ require('dotenv-extended').load();
 var express = require('express');
 var app = express();
 var router = express.Router();
-var mysql = require('mysql');
+
+// custom js
+var sqltools = require('../util/sqltools.js');
+
 // mysql setup
+var mysql = require('mysql');
 var connection = mysql.createConnection({
-	host: 'localhost',
-	user: 'root',
-	password: 'password',
-	database: 'bots'
+	host: process.env.SQL_HOST,
+	user: process.env.SQL_USER,
+	password: process.env.SQL_PASS,
+	database: process.env.SQL_DB
 });
 
 connection.connect(function(err){
@@ -37,12 +41,17 @@ app.get('/:user/', function(req, res){
 	if(user === 'favicon.ico'){
 		return;
 	}
-	connection.query('SELECT * FROM users WHERE user =' + mysql.escape(user), function(req, res){
+	connection.query('SELECT * FROM users WHERE username =' + mysql.escape(user), function(err, result, fields){
 		if(err){
 			console.log(err);
+			res.send('error retrieving data');
 		}else{
 			console.log('successful query');
-			console.log(result);
+			if(result.length === 0){
+				res.send('user not found');
+			}else{
+				res.send(result);
+			}
 		}
 	});
 });
@@ -54,12 +63,17 @@ app.get('/:user/:id', function(req, res){
 	if(id === 'favicon.ico'){
 		return;
 	}
-	connection.query("SELECT * FROM stories WHERE user =" + mysql.escape(user) + " AND id =" + mysql.escape(id), function(err, result, fields){
+	connection.query("SELECT * FROM stories WHERE id =" + mysql.escape(id) + " AND fk_user =" + mysql.escape(user), function(err, result, fields){
 		if(err){
 			console.log(err);
+			res.send('error retrieving data');
 		}else{
 			console.log('successful query');
-			console.log(result);
+			if(result.length === 0){
+				res.send('story not found');
+			}else{
+				res.send(result);
+			}
 		}
 	});
 });
@@ -71,12 +85,3 @@ app.get('*',function(req, res){
 app.listen(port = process.env.port_web || process.env.PORT_WEB || 3000, function(){
   console.log('WEB: %s listening to http://[%s]:%s', app.name, this.address().address, this.address().port); 
 });
-
-// var sql_insert = "INSERT INTO sampleTable (id, name) VALUES (" + mysql.escape(req.params.id) + ", " + mysql.escape(name) + ")";
-// connection.query(sql_insert, function(err, result){
-// 	if(err){
-// 		console.log(err);
-// 	}else{
-// 		console.log('inserted: ' + id);
-// 	}
-// });
