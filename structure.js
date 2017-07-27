@@ -1,7 +1,9 @@
+fs = require('fs');
+
 /*fragments of story to be stored in structure class, not accessable in export*/
 class segment{
 	/* lines - an array of strings to be said in the scene
-	 * options - array of (string key, option object)
+	 * options - map of (string key, option object)
 	 * option object - destinationKey, destination
 	 */
 	constructor(lines = [], options = new Map(), jumpKey = null, id = undefined){
@@ -72,7 +74,7 @@ class structure{
 	}
 
 	/*connect all the segments using key identification. Run after adding all the segments*/
-	connect(){-
+	connect(){
 		this.segments.forEach(function(value, key, map){
 			if(value.jumpKey != null){
 				value.jump = map.get(value.jumpKey);
@@ -102,10 +104,51 @@ class structure{
 		return this.segments.get(key);
 	}
 
+	/*saves it as a text file*/
+	save(){
+		var path = 'structure_files/' + this.id + '.txt';
+		fs.open(path, 'w', function(err){
+			if(err){
+				console.log(err);
+			}
+		});
+		var stream = fs.createWriteStream(path);
+		//begin building and writing stream
+		stream.write(this.name + ' ' + this.version + '\n');
+		stream.write(this.description + '\n');
+		stream.write(this.id + '\n');
+		this.segments.forEach(function(value, key, map){
+			stream.write('<segment id=' + key + '>' + '\n');
+			value.lines.forEach(function(element){
+				stream.write(element + '\n');
+			});
+			if(value.options.size != 0){
+				stream.write('<options>' + '\n');
+				value.options.forEach(function(value_o, key_o, map_o){
+					stream.write(key_o + ' ' + value_o.destinationKey + '\n');
+				});
+				stream.write('</options>' + '\n');
+			}else if(value.jumpKey != null){
+				stream.write('<jump>' + '\n');
+				stream.write(value.jumpKey + '\n');
+				stream.write('</jump>' + '\n');
+			}
+			stream.write('</segment>' + '\n')
+		});
+		if(this.optionslist.size != 0){
+			stream.write('<optionslist>' + '\n');
+			this.optionslist.forEach(function(value, key, map){
+				stream.write(key + ' ' + value.join('/') + '\n');
+			});
+			stream.write('</optionslist>' + '\n');
+		}
+		stream.end();
+	}
+
 	/*member variables:
 	 * start, name, description, id, version
 	 * segments [map (id, segment reference)]
-	 * optionslist [map (option name, triggers)]
+	 * optionslist [map (option name, triggers[])]
 	 */
 }
 

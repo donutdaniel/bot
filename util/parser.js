@@ -4,7 +4,7 @@ var fs = require('fs');
 /*takes the data as a string and returns a story*/
 function parseHelper(data){
 	var story = new structure();
-	var dataArray = data.toString().split("\r\n");
+	var dataArray = data.toString().split("\n");
 	var index = 3;
 	var id;
 	var jump;
