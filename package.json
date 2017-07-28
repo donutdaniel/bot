@@ -17,10 +17,12 @@
   },
   "homepage": "https://github.com/donutdaniel/bot#readme",
   "dependencies": {
+    "body-parser": "^1.17.2",
     "botbuilder": "^3.8.3",
     "dotenv-extended": "^2.0.0",
     "events": "^1.1.1",
     "express": "^4.15.3",
+    "express-validator": "^3.2.1",
     "fs": "0.0.1-security",
     "mysql": "^2.13.0",
     "restify": "^4.3.0"
