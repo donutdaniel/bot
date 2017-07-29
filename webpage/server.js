@@ -1,4 +1,6 @@
 require('dotenv-extended').load();
+var path = require('path');
+var pug = require('pug');
 var express = require('express');
 var app = express();
 var router = express.Router();
@@ -23,30 +25,71 @@ connection.connect(function(err){
 // custom js
 var sqltools = require('../util/sqltools.js');
 
-
 // express setup and middleware
-var path = __dirname + '/';
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'pug');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(expressValidator());
 
 // Landing Page
 app.get('/', function(req, res){
-	res.sendFile(path + 'views/index.html');
+	res.render('index', {
+		title: 'Welcome!',
+		message: 'Hello!',
+	});
 });
 
 // Create new user
 app.get('/signup', function(req, res){
-	res.sendFile(path + 'views/signup.html');
+	res.render('signup', {results: []});
 });
 app.post('/signup', function(req, res){
+	req.checkBody('username', 'username required').notEmpty();
+	req.checkBody('username', 'username cannot contain spaces').matches(/^\S*$/);
+	req.sanitizeBody('username').escape();
+	req.sanitizeBody('username').trim();
+	req.checkBody('password', 'password required').notEmpty()
+	req.checkBody('password', 'password cannot contain spaces').matches(/^\S*$/);
+	req.checkBody('password', 'password length must be between 8 and 30').len(8, 30);
+	req.checkBody('confirm_password', 'passwords do not match').matches(req.body.password);
+	req.sanitizeBody('password').escape();
+	req.sanitizeBody('password').trim();
 	var username = req.body.username;
 	var password = req.body.password;
-	connection.query('INSERT INTO users (username, password) VALUES (' + mysql.escape(username) + ', ' + mysql.escape(password) + ')', function(err, result){
-		if(err){
-			console.log('insertion error: ' + err.code);
-		}else{
-			console.log('successful user insert');
+	var confirm_password = req.body.confirm_password;
+	// validation check
+	req.getValidationResult().then(function(res_val){
+		if(!res_val.isEmpty()){ // error
+			res.render('signup', {
+				username: username,
+				password: password, 
+				confirm_password: confirm_password, 
+				results: res_val.array()
+			});
+			return;
+		}else{ // attempt add
+			var sql_insert = 'INSERT INTO users (username, password) VALUES (' + mysql.escape(username) + ', ' + mysql.escape(password) + ')';
+			connection.query(sql_insert, function(err_add, res_add){
+				if(err_add){
+					console.log('user insertion error: ' + err_add.code);
+					var msg = err_add.code;
+					if(err_add.code === 'ER_DUP_ENTRY'){
+						msg = 'username taken'
+					}
+					res.render('signup', {
+						username: username,
+						password: password,
+						confirm_password: confirm_password,
+						results: [{msg: msg}]
+					});
+				}else{
+					console.log('successfully inserted: ' + username);
+					res.render('signup', {
+						results: [{msg: 'success! user created'}]
+					});
+				}
+			});
 		}
 	});
 });
