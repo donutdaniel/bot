@@ -23,6 +23,7 @@ connection.connect(function(err){
 	}
 });
 // custom js
+var hash = require('../util/hash.js');
 var sqltools = require('../util/sqltools.js');
 
 // express setup and middleware
@@ -69,7 +70,7 @@ app.post('/signup', function(req, res){
 			});
 			return;
 		}else{ // attempt add
-			var sql_insert = 'INSERT INTO users (username, password) VALUES (' + mysql.escape(username) + ', ' + mysql.escape(password) + ')';
+			var sql_insert = 'INSERT INTO users (username, password) VALUES (' + mysql.escape(username) + ', ' + mysql.escape(hash(password)) + ')';
 			connection.query(sql_insert, function(err_add, res_add){
 				if(err_add){
 					console.log('user insertion error: ' + err_add.code);
