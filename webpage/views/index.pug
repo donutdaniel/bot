@@ -2,8 +2,13 @@ html
 	head
 		style
 			include styles/index.css
-		title= 'Welcome!'
+		title Welcome!
 	body
+		a(href='/')
+			button HOME
 		h1= message
-		button
-			a(href='/signup') Signup
+		a(href='/login')
+			button Login
+		| <br>
+		a(href='/signup')
+			button Signup

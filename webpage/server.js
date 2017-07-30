@@ -25,7 +25,6 @@ connection.connect(function(err){
 // custom js
 var hash = require('../util/hash.js');
 var sqltools = require('../util/sqltools.js');
-
 // express setup and middleware
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
@@ -36,31 +35,27 @@ app.use(expressValidator());
 // Landing Page
 app.get('/', function(req, res){
 	res.render('index', {
-		title: 'Welcome!',
-		message: 'Hello!',
+		message: 'Hello! Welcome to bot builder',
 	});
 });
 
-// Create new user
+// Signup page
 app.get('/signup', function(req, res){
 	res.render('signup', {results: []});
 });
 app.post('/signup', function(req, res){
+	req.sanitizeBody('username').trim();
 	req.checkBody('username', 'username required').notEmpty();
 	req.checkBody('username', 'username cannot contain spaces').matches(/^\S*$/);
-	req.sanitizeBody('username').escape();
-	req.sanitizeBody('username').trim();
+	req.sanitizeBody('password').trim();
 	req.checkBody('password', 'password required').notEmpty()
 	req.checkBody('password', 'password cannot contain spaces').matches(/^\S*$/);
 	req.checkBody('password', 'password length must be between 8 and 30').len(8, 30);
 	req.checkBody('confirm_password', 'passwords do not match').matches(req.body.password);
-	req.sanitizeBody('password').escape();
-	req.sanitizeBody('password').trim();
 	var username = req.body.username;
 	var password = req.body.password;
 	var confirm_password = req.body.confirm_password;
-	// validation check
-	req.getValidationResult().then(function(res_val){
+	req.getValidationResult().then(function(res_val){ // validation check
 		if(!res_val.isEmpty()){ // error
 			res.render('signup', {
 				username: username,
@@ -68,7 +63,6 @@ app.post('/signup', function(req, res){
 				confirm_password: confirm_password, 
 				results: res_val.array()
 			});
-			return;
 		}else{ // attempt add
 			var sql_insert = 'INSERT INTO users (username, password) VALUES (' + mysql.escape(username) + ', ' + mysql.escape(hash(password)) + ')';
 			connection.query(sql_insert, function(err_add, res_add){
@@ -95,8 +89,53 @@ app.post('/signup', function(req, res){
 	});
 });
 
+// Login page
+app.get('/login', function(req, res){
+	res.render('login', {results: []});
+});
+app.post('/login', function(req, res){
+	req.sanitizeBody('username').trim();
+	req.sanitizeBody('password').trim();
+	var username = req.body.username;
+	var password = req.body.password;
+	req.getValidationResult().then(function(res_val){ // validation check
+		if(!res_val.isEmpty()){ // error
+			res.render('login', {
+				username: username,
+				password: password, 
+				results: res_val.array()
+			});
+		}else{ // attempt add
+			var sql_select = 'SELECT * FROM users WHERE username =' + mysql.escape(username) + ' AND password=' + mysql.escape(hash(password));
+			connection.query(sql_select, function(err_get, res_get){
+				if(err_get){
+					console.log('user retrieval error: ' + err_get.code);
+					var msg = err_get.code;
+					res.render('login', {
+						username: username,
+						password: password,
+						confirm_password: confirm_password,
+						results: [{msg: msg}]
+					});
+				}else{
+					console.log('successful retrieval: ' + username);
+					if(res_get.length === 0){
+						res.render('login', {
+							username: username,
+							password: password,
+							results: [{msg: 'incorrect information'}]
+						});
+					}else{
+						res.redirect('/' + username);
+					}
+				}
+			});
+		}
+	});
+});
+
 // User Account Page
-app.get('/:user/', function(req, res){
+app.get('/:user', function(req, res){
 	var user = req.params.user;
 	if(user === 'favicon.ico'){
 		return;
@@ -106,7 +145,7 @@ app.get('/:user/', function(req, res){
 			console.log('retrieve error: ' + err.code);
 			res.send('error retrieving data');
 		}else{
-			console.log('successful query');
+			console.log('successful retrieval');
 			if(result.length === 0){
 				res.send('user not found');
 			}else{
