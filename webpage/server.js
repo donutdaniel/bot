@@ -5,6 +5,7 @@ var express = require('express');
 var app = express();
 var router = express.Router();
 // middleware
+var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var expressValidator = require('express-validator');
 // mysql databasing setup
