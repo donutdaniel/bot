@@ -16,15 +16,16 @@ API_KEY
 * Export to some kind of mobile app
 * better stories
 
-### TODO:
+### BOT TODO:
 * get rid of choices text, escape chars cause errors
 * better language understanding (including regex understanding)
 * ability to choose story to begin with (should preload all stories on deploy? have to do it everytime a new one is added or changed)
-* explore databasing so can store structures
-*	SERVER ISSUES
-* use express-validator to validate content being passed in
-* finish signup, include hash algorithm
+
+###	SERVER TODO
 * connect sql requests with actual saved stories
+* keep track of user sessions with cookies
+* build the create page
+* nicer interface
 
 ### ISSUES:
 * session.userData.current stores id, so each time proceed is called the structure searches for the segment again (inefficient).
