@@ -23,7 +23,6 @@ API_KEY
 
 ###	SERVER TODO
 * connect sql requests with actual saved stories
-* keep track of user sessions with cookies
 * build the create page
 * nicer interface
 

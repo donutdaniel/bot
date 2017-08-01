@@ -44,56 +44,6 @@ module.exports = function(app, passport){
 			}
 		});
 	});
-/*	app.post('/signup', function(req, res){
-		req.sanitizeBody('username').trim();
-		req.checkBody('username', 'username required').notEmpty();
-		req.checkBody('username', 'username cannot contain spaces').matches(/^\S*$/);
-		req.sanitizeBody('password').trim();
-		req.checkBody('password', 'password required').notEmpty()
-		req.checkBody('password', 'password cannot contain spaces').matches(/^\S*$/);
-		req.checkBody('password', 'password length must be between 8 and 30').len(8, 30);
-		req.checkBody('confirm_password', 'passwords do not match').matches(req.body.password);
-		var username = req.body.username;
-		var password = req.body.password;
-		var confirm_password = req.body.confirm_password;
-		req.getValidationResult().then(function(res_val){ // validation check
-			if(!res_val.isEmpty()){ // error
-				var res_val_arr = res_val.array();
-				var msg_arr = [];
-				for (var i = 0; i < res_val_arr.length; i++){
-					msg_arr.push(res_val_arr[i].msg);
-				}
-				res.render('signup', {
-					username: username,
-					password: password, 
-					confirm_password: confirm_password, 
-					messages: msg_arr
-				});
-			}else{ // attempt add
-				var sql_insert = 'INSERT INTO users (username, password) VALUES (' + mysql.escape(username) + ', ' + mysql.escape(hash(password)) + ')';
-				connection.query(sql_insert, function(err_add, res_add){
-					if(err_add){
-						console.log('user insertion error: ' + err_add.code);
-						var msg = [err_add.code];
-						if(err_add.code === 'ER_DUP_ENTRY'){
-							msg = ['username taken']
-						}
-						res.render('signup', {
-							username: username,
-							password: password,
-							confirm_password: confirm_password,
-							messages: msg
-						});
-					}else{
-						console.log('successfully inserted: ' + username);
-						res.render('signup', {
-							messages: ['success! user created']
-						});
-					}
-				});
-			}
-		});
-	});*/
 
 	// Login
 	app.get('/login', function(req, res){
@@ -106,51 +56,6 @@ module.exports = function(app, passport){
 			failureFlash: true
 		})(req, res, next);
 	});
-/*	app.post('/login', function(req, res){
-		req.sanitizeBody('username').trim();
-		req.sanitizeBody('password').trim();
-		var username = req.body.username;
-		var password = req.body.password;
-		req.getValidationResult().then(function(res_val){ // validation check
-			if(!res_val.isEmpty()){ // error
-				var res_val_arr = res_val.array();
-				var msg_arr = [];
-				for (var i = 0; i < res_val_arr.length; i++){
-					msg_arr.push(res_val_arr[i].msg);
-				}
-				res.render('login', {
-					username: username,
-					password: password, 
-					messages: msg_arr
-				});
-			}else{ // attempt add
-				var sql_select = 'SELECT * FROM users WHERE username =' + mysql.escape(username) + ' AND password=' + mysql.escape(hash(password));
-				connection.query(sql_select, function(err_get, res_get){
-					if(err_get){
-						console.log('user retrieval error: ' + err_get.code);
-						var msg = [err_get.code];
-						res.render('login', {
-							username: username,
-							password: password,
-							confirm_password: confirm_password,
-							messages: msg
-						});
-					}else{
-						console.log('successful retrieval: ' + username);
-						if(res_get.length === 0){
-							res.render('login', {
-								username: username,
-								password: password,
-								messages: ['incorrect information']
-							});
-						}else{
-							res.redirect('/' + username);
-						}
-					}
-				});
-			}
-		});
-	});*/
 
 	// Logout
 	app.get('/logout', function(req, res){
