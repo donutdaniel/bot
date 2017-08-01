@@ -1,7 +1,7 @@
 {
   "name": "bot",
   "version": "1.0.0",
-  "description": "make bots great again",
+  "description": "bot bot",
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -19,11 +19,16 @@
   "dependencies": {
     "body-parser": "^1.17.2",
     "botbuilder": "^3.8.3",
+    "connect-flash": "^0.1.1",
     "cookie-parser": "^1.4.3",
     "dotenv-extended": "^2.0.0",
     "express": "^4.15.3",
+    "express-session": "^1.15.4",
     "express-validator": "^3.2.1",
+    "morgan": "^1.8.2",
     "mysql": "^2.13.0",
+    "passport": "^0.3.2",
+    "passport-local": "^1.0.0",
     "pug": "^2.0.0-rc.2",
     "restify": "^4.3.0"
   }

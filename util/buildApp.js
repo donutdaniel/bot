@@ -1,4 +1,3 @@
-require('dotenv-extended').load();
 var https = require('https');
 var fs  = require('fs');
 var events = require('events');

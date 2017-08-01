@@ -1,15 +1,22 @@
-require('dotenv-extended').load();
 var path = require('path');
-var pug = require('pug');
 var express = require('express');
 var app = express();
-var router = express.Router();
+var pug = require('pug');
+var passport = require('passport');
+var flash = require('connect-flash');
+var mysql = require('mysql');
 // middleware
+var morgan = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var expressValidator = require('express-validator');
+var session = require('express-session');
+// custom js
+var hash = require('../util/hash.js');
+var sqltools = require('../util/sqltools.js');
+
+// configuration ====================================================================================
 // mysql databasing setup
-var mysql = require('mysql');
 var connection = mysql.createConnection({
 	host: process.env.SQL_HOST,
 	user: process.env.SQL_USER,
@@ -19,30 +26,86 @@ var connection = mysql.createConnection({
 connection.connect(function(err){
 	if(err){
 		console.log('mysql error');
-	}else{
-		console.log('mysql connected');
+	}else
+{		console.log('mysql connected');
 	}
 });
-// custom js
-var hash = require('../util/hash.js');
-var sqltools = require('../util/sqltools.js');
+// passport
+require('./util/passport.js')(passport);
 // express setup and middleware
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
+app.use(morgan('dev'));
+app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(expressValidator());
+app.use(session({secret: 'thisisthesecret'}));
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(flash());
 
-// Landing Page
+// routes =================================================================================
+// Landing page
 app.get('/', function(req, res){
 	res.render('index', {
 		message: 'Hello! Welcome to bot builder',
 	});
 });
 
-// Signup page
+// Login
+app.get('/login', function(req, res){
+	res.render('login', {messages: req.flash('loginMessage')});
+});
+app.post('/login', function(req, res){
+	req.sanitizeBody('username').trim();
+	req.sanitizeBody('password').trim();
+	var username = req.body.username;
+	var password = req.body.password;
+	req.getValidationResult().then(function(res_val){ // validation check
+		if(!res_val.isEmpty()){ // error
+			var res_val_arr = res_val.array();
+			var msg_arr = [];
+			for (var i = 0; i < res_val_arr.length; i++){
+				msg_arr.push(res_val_arr[i].msg);
+			}
+			res.render('login', {
+				username: username,
+				password: password, 
+				messages: msg_arr
+			});
+		}else{ // attempt add
+			var sql_select = 'SELECT * FROM users WHERE username =' + mysql.escape(username) + ' AND password=' + mysql.escape(hash(password));
+			connection.query(sql_select, function(err_get, res_get){
+				if(err_get){
+					console.log('user retrieval error: ' + err_get.code);
+					var msg = [err_get.code];
+					res.render('login', {
+						username: username,
+						password: password,
+						confirm_password: confirm_password,
+						messages: msg
+					});
+				}else{
+					console.log('successful retrieval: ' + username);
+					if(res_get.length === 0){
+						res.render('login', {
+							username: username,
+							password: password,
+							messages: ['incorrect information']
+						});
+					}else{
+						res.redirect('/' + username);
+					}
+				}
+			});
+		}
+	});
+});
+
+// Signup
 app.get('/signup', function(req, res){
-	res.render('signup', {results: []});
+	res.render('signup', {messages: req.flash('signupMessage')});
 });
 app.post('/signup', function(req, res){
 	req.sanitizeBody('username').trim();
@@ -58,31 +121,36 @@ app.post('/signup', function(req, res){
 	var confirm_password = req.body.confirm_password;
 	req.getValidationResult().then(function(res_val){ // validation check
 		if(!res_val.isEmpty()){ // error
+			var res_val_arr = res_val.array();
+			var msg_arr = [];
+			for (var i = 0; i < res_val_arr.length; i++){
+				msg_arr.push(res_val_arr[i].msg);
+			}
 			res.render('signup', {
 				username: username,
 				password: password, 
 				confirm_password: confirm_password, 
-				results: res_val.array()
+				messages: msg_arr
 			});
 		}else{ // attempt add
 			var sql_insert = 'INSERT INTO users (username, password) VALUES (' + mysql.escape(username) + ', ' + mysql.escape(hash(password)) + ')';
 			connection.query(sql_insert, function(err_add, res_add){
 				if(err_add){
 					console.log('user insertion error: ' + err_add.code);
-					var msg = err_add.code;
+					var msg = [err_add.code];
 					if(err_add.code === 'ER_DUP_ENTRY'){
-						msg = 'username taken'
+						msg = ['username taken']
 					}
 					res.render('signup', {
 						username: username,
 						password: password,
 						confirm_password: confirm_password,
-						results: [{msg: msg}]
+						messages: msg
 					});
 				}else{
 					console.log('successfully inserted: ' + username);
 					res.render('signup', {
-						results: [{msg: 'success! user created'}]
+						messages: ['success! user created']
 					});
 				}
 			});
@@ -90,48 +158,17 @@ app.post('/signup', function(req, res){
 	});
 });
 
-// Login page
-app.get('/login', function(req, res){
-	res.render('login', {results: []});
+// Logout
+app.get('/logout', function(req, res){
+	req.logout();
+	req.redirect('/');
 });
-app.post('/login', function(req, res){
-	req.sanitizeBody('username').trim();
-	req.sanitizeBody('password').trim();
-	var username = req.body.username;
-	var password = req.body.password;
-	req.getValidationResult().then(function(res_val){ // validation check
-		if(!res_val.isEmpty()){ // error
-			res.render('login', {
-				username: username,
-				password: password, 
-				results: res_val.array()
-			});
-		}else{ // attempt add
-			var sql_select = 'SELECT * FROM users WHERE username =' + mysql.escape(username) + ' AND password=' + mysql.escape(hash(password));
-			connection.query(sql_select, function(err_get, res_get){
-				if(err_get){
-					console.log('user retrieval error: ' + err_get.code);
-					var msg = err_get.code;
-					res.render('login', {
-						username: username,
-						password: password,
-						confirm_password: confirm_password,
-						results: [{msg: msg}]
-					});
-				}else{
-					console.log('successful retrieval: ' + username);
-					if(res_get.length === 0){
-						res.render('login', {
-							username: username,
-							password: password,
-							results: [{msg: 'incorrect information'}]
-						});
-					}else{
-						res.redirect('/' + username);
-					}
-				}
-			});
-		}
+
+
+// Profile
+app.get('/profile', isLoggedIn, function(req, res){
+	res.render('profile', {
+		user: req.user
 	});
 });
 
@@ -186,3 +223,13 @@ app.get('*',function(req, res){
 app.listen(port = process.env.port_web || process.env.PORT_WEB || 3000, function(){
   console.log('WEB: %s listening to http://[%s]:%s', app.name, this.address().address, this.address().port); 
 });
+
+// helper functions
+function isLoggedIn(req, res, next){
+	if(req.isAuthenticated()){
+		return next();
+	}
+	res.redirect('/');
+}
+
+function authenticate
