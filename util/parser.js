@@ -1,9 +1,9 @@
-var structure = require('../structure.js');
+var story = require('../story.js');
 var fs = require('fs');
 
 /*takes the data as a string and returns a story*/
 function parseHelper(data){
-	var story = new structure();
+	var story_ = new story();
 	var dataArray = data.toString().split("\n");
 	var index = 3;
 	var id;
@@ -12,18 +12,18 @@ function parseHelper(data){
 		throw 'error parsing';
 	}
 	var nameVer = dataArray[0].split(" ");
-	story.name = nameVer[0];
+	story_.name = nameVer[0];
 	if(nameVer[1] === undefined){
-		story.version = 0.1;
+		story_.version = 0.1;
 	}else{
-		story.version = nameVer[1];
+		story_.version = nameVer[1];
 	}
-	story.description = dataArray[1];
-	story.version = dataArray[0].split(" ")[1];
+	story_.description = dataArray[1];
+	story_.version = dataArray[0].split(" ")[1];
 	if(dataArray[2] === ''){
-		story.id = undefined;
+		story_.id = undefined;
 	}else{
-		story.id = dataArray[2];
+		story_.id = dataArray[2];
 	}
 	
 	while(index < dataArray.length){
@@ -65,7 +65,7 @@ function parseHelper(data){
 				index++;
 			}
 			// create and add segment
-			story.addSegment(id, lines, options, jump);
+			story_.addSegment(id, lines, options, jump);
 		}else if(dataArray[index].match(/<optionslist/)){
 			index++;
 			while(dataArray[index].match(/<\/optionslist/g) === null){
@@ -73,14 +73,14 @@ function parseHelper(data){
 				var spaceIndex = optionStr.indexOf(" ");
 				var optionKey = optionStr.substring(0, spaceIndex);
 				var optionTriggers = optionStr.substring(optionKey.length+1, optionStr.length).split("/");
-				story.optionslist.set(optionKey, optionTriggers);
+				story_.optionslist.set(optionKey, optionTriggers);
 				index++;	
 			}
 		}
 		index++;
 	}
-	story.connect();
-	return story;
+	story_.connect();
+	return story_;
 }
 
 /*synchronously parses the file and returns a connected story object*/

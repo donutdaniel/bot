@@ -5,16 +5,16 @@ var events = require('events');
 var emitter = new events();
 var universalPath = '/luis/api/v2.0/apps/';
 
-/*buildApp takes a structure and returns a url containing the luis app*/
+/*buildApp takes a story and returns a url containing the luis app*/
 
-/*request function for bot structure, takes care of error checking
-structure: main bot structure to be built
+/*request function for bot story, takes care of error checking
+story: main bot story to be built
 callback: data as buffer object is passed in
 data: data object as parameter, automatically converted to string in function
 immediate: no data stream expected, immediately issue callback*/
-function request(structure, path = '', method = 'GET', callback = dummyCB, data = null, immediate = false){
+function request(story, path = '', method = 'GET', callback = dummyCB, data = null, immediate = false){
     if(arguments.length < 1){
-        throw Error("BotStructure not provided.");
+        throw Error("Botstory not provided.");
     }
     var options = {
         hostname: 'westus.api.cognitive.microsoft.com',
@@ -28,7 +28,7 @@ function request(structure, path = '', method = 'GET', callback = dummyCB, data 
     };
     var req = https.request(options, (res) => {
         if(immediate){
-            callback(structure, null);
+            callback(story, null);
             return;
         }
         res.on('error', () => {
@@ -37,7 +37,7 @@ function request(structure, path = '', method = 'GET', callback = dummyCB, data 
         res.on('data', (d) =>{
             var dJSON = JSON.parse(d);           
             if(dJSON === null || dJSON === undefined){
-                callback(structure, d);
+                callback(story, d);
             }else if(dJSON.error != undefined){ // top level error
                 console.log(dJSON.error);
                 console.log(JSON.stringify(data));
@@ -45,13 +45,13 @@ function request(structure, path = '', method = 'GET', callback = dummyCB, data 
             }else if(dJSON.statusCode != undefined){ // general error
                 if(dJSON.statusCode === 429){
                     console.log("Timeout Error. Will try again in 1 second.");
-                    setTimeout(request, 1000, structure, path, method, callback, data, immediate);
+                    setTimeout(request, 1000, story, path, method, callback, data, immediate);
                 }else{
                     console.log(dJSON.message);
                     return;
                 }
             }else{
-                callback(structure, d); // execute normally
+                callback(story, d); // execute normally
             }
         });
     });
@@ -65,11 +65,11 @@ function request(structure, path = '', method = 'GET', callback = dummyCB, data 
 }
 
 /*Callback functions, with each cascading into another*/
-function dummyCB(structure, data){
+function dummyCB(story, data){
     // do nothing
 }
 
-function displayCB(structure, data){
+function displayCB(story, data){
     if(data != null){
         console.log(data.toString());
     }
@@ -78,55 +78,55 @@ function displayCB(structure, data){
 /*Iterates through each existing app, matching names.
 if matched, then the app is updated
 if not matched, a new app is created*/
-function getAppCB(structure, data){
+function getAppCB(story, data){
     var appData = new Object();
-    appData.name = structure.name;
-    appData.description = structure.description;
+    appData.name = story.name;
+    appData.description = story.description;
     appData.culture = 'en-us';
     var path = universalPath;
     var dJSON = JSON.parse(data);
     for (var i = 0; i < dJSON.length; i++) {
-        if(dJSON[i].name === structure.name){
+        if(dJSON[i].name === story.name){
             // Matched
             var id = dJSON[i].id;
-            structure.id = id;
-            structure.version = dJSON[i].endpoints.PRODUCTION.versionId;
+            story.id = id;
+            story.version = dJSON[i].endpoints.PRODUCTION.versionId;
             path = path + id;
             if(dJSON[i].endpoints.PRODUCTION.assignedEndpointKey === ""){
                 console.log("Assigning Subscription Key");
-                request(structure, path + '/versions/' + structure.version + '/assignedkey', 'PUT', displayCB, process.env.SUBSCRIPTION_KEY);
+                request(story, path + '/versions/' + story.version + '/assignedkey', 'PUT', displayCB, process.env.SUBSCRIPTION_KEY);
             }
-            console.log("Updating App: " + structure.name);
-            request(structure, path, 'PUT', updateAppCB, appData, true);
+            console.log("Updating App: " + story.name);
+            request(story, path, 'PUT', updateAppCB, appData, true);
             return;
         }
     }
     // Not Matched
-    appData.initialVersionId = structure.version;
-    console.log("Creating New App: " + structure.name);
-    request(structure, path, 'POST', addAppCB, appData);
+    appData.initialVersionId = story.version;
+    console.log("Creating New App: " + story.name);
+    request(story, path, 'POST', addAppCB, appData);
 
 }
 
-/*Assigns id to structure, then begins adding intents*/
-function addAppCB(structure, data){
+/*Assigns id to story, then begins adding intents*/
+function addAppCB(story, data){
     var dJSON = JSON.parse(data);
-    structure.id = dJSON;
-    var path = universalPath + structure.id + '/versions/' + structure.version;
+    story.id = dJSON;
+    var path = universalPath + story.id + '/versions/' + story.version;
     console.log("Retrieving Intents List");
-    request(structure, path + '/intents', 'GET', getIntentsCB);
+    request(story, path + '/intents', 'GET', getIntentsCB);
     console.log("Assigning Subscription Key");
-    request(structure, path + '/assignedkey', 'PUT', dummyCB, process.env.SUBSCRIPTION_KEY);
+    request(story, path + '/assignedkey', 'PUT', dummyCB, process.env.SUBSCRIPTION_KEY);
 }
 
-function updateAppCB(structure, data){
-    var path = universalPath + structure.id + '/versions/' + structure.version + '/intents';
+function updateAppCB(story, data){
+    var path = universalPath + story.id + '/versions/' + story.version + '/intents';
     console.log("Retrieving Intents List");
-    request(structure, path, 'GET', getIntentsCB);
+    request(story, path, 'GET', getIntentsCB);
 }
 
-function getIntentsCB(structure, data){ // TODO: allow for updating
-    var path = universalPath + structure.id + '/versions/' + structure.version;
+function getIntentsCB(story, data){ // TODO: allow for updating
+    var path = universalPath + story.id + '/versions/' + story.version;
     var dJSON = JSON.parse(data);
     var existingIntents = [];
     dJSON.forEach((value, index, array) => {
@@ -136,7 +136,7 @@ function getIntentsCB(structure, data){ // TODO: allow for updating
     // helper variables to make sure process of adding intents has finished
     var intentsAddedSum = 0;
     var totalNewIntents = 0;
-    structure.optionslist.forEach((value, key, map) => {
+    story.optionslist.forEach((value, key, map) => {
         // Check for duplicates and add in batch
         if(existingIntents.find((element, index, array) => { return element === key; }) === undefined){
             totalNewIntents++;
@@ -144,7 +144,7 @@ function getIntentsCB(structure, data){ // TODO: allow for updating
             var intentData = new Object();
             intentData.name = key;
             console.log("Adding Intent:" + key);
-            request(structure, path + '/intents', 'POST', addIntentCB, intentData);
+            request(story, path + '/intents', 'POST', addIntentCB, intentData);
         }
         for(var i = 0; i < value.length; i++){
             examplesData.push({intentName: key, text: value[i]});
@@ -152,24 +152,24 @@ function getIntentsCB(structure, data){ // TODO: allow for updating
     });
     if(totalNewIntents === 0){
         console.log("Batch Adding Labelled Examples");
-        request(structure, path + '/examples', 'POST', addBatchLabelsCB, examplesData);
+        request(story, path + '/examples', 'POST', addBatchLabelsCB, examplesData);
     }
     emitter.on("intentAdded", function(){
         intentsAddedSum++;
         if(intentsAddedSum === totalNewIntents){
             console.log("Batch Adding Labelled Examples");
-            request(structure, path + '/examples', 'POST', addBatchLabelsCB, examplesData);
+            request(story, path + '/examples', 'POST', addBatchLabelsCB, examplesData);
         }
     });
 }
 
-function addIntentCB(structure, data){
+function addIntentCB(story, data){
     // Triggers adding batch labels
     emitter.emit("intentAdded");
 }
 
-function addBatchLabelsCB(structure, data){
-    var path = universalPath + structure.id + '/versions/' + structure.version;
+function addBatchLabelsCB(story, data){
+    var path = universalPath + story.id + '/versions/' + story.version;
     var dJSON = JSON.parse(data);
     for (var i = 0; i < dJSON.length; i++) {
         if(dJSON[i].hasError){
@@ -177,17 +177,17 @@ function addBatchLabelsCB(structure, data){
         }
     }
     console.log("Training App");
-    request(structure, path + '/train', 'POST', trainCB, null, true);
+    request(story, path + '/train', 'POST', trainCB, null, true);
 }
 
-function trainCB(structure, data){
-    var path = universalPath + structure.id + '/versions/' + structure.version;
+function trainCB(story, data){
+    var path = universalPath + story.id + '/versions/' + story.version;
     console.log("Getting App Training Status");
-    request(structure, path + '/train', 'GET', trainStatusCB);
+    request(story, path + '/train', 'GET', trainStatusCB);
 }
 
-function trainStatusCB(structure, data){
-    var path = universalPath + structure.id + '/versions/' + structure.version;
+function trainStatusCB(story, data){
+    var path = universalPath + story.id + '/versions/' + story.version;
     var dJSON = JSON.parse(data);
     var statusId;
     for (var i = 0; i < dJSON.length; i++){
@@ -197,19 +197,19 @@ function trainStatusCB(structure, data){
         }
         if(statusId === 3){
             console.log("Training Status: One or more models are still in progress...")
-            setTimeout(request, 1000, structure, path + '/train', 'GET', trainStatusCB);
+            setTimeout(request, 1000, story, path + '/train', 'GET', trainStatusCB);
             return;
         }
     }
     var publishData = new Object();
-    publishData.versionId = structure.version;
+    publishData.versionId = story.version;
     publishData.isStaging = false;
     console.log("Training Status: Done!");
     console.log("Publishing");
-    request(structure, universalPath + structure.id + '/publish', 'POST', publishCB, publishData);
+    request(story, universalPath + story.id + '/publish', 'POST', publishCB, publishData);
 }
 
-function publishCB(structure, data){
+function publishCB(story, data){
     var dJSON = JSON.parse(data);
     var url = dJSON.endpointUrl + '?subscription-key=' + dJSON.assignedEndpointKey + '&timezoneOffset=0&verbose=true&q='
     console.log("Endpoint Url: " + url);
@@ -219,18 +219,18 @@ function publishCB(structure, data){
 
 /*Multi-part step to build natural language processing unit
  * returns the published url*/
-function buildApp(structure){
-    if(structure.id === undefined){
+function buildApp(story){
+    if(story.id === undefined){
         console.log("Retrieving App List");
-        request(structure, universalPath, 'GET', getAppCB); 
+        request(story, universalPath, 'GET', getAppCB); 
     }else{
         var appData = new Object();
-        appData.name = structure.name;
-        appData.description = structure.description;
-        appData.verion = structure.version;
+        appData.name = story.name;
+        appData.description = story.description;
+        appData.verion = story.version;
         appData.culture = 'en-us';
-        console.log("Updating App: " + structure.name);
-        request(structure, universalPath + structure.id, 'PUT', updateAppCB, appData);
+        console.log("Updating App: " + story.name);
+        request(story, universalPath + story.id, 'PUT', updateAppCB, appData, true);
     }
 }
 
