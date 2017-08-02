@@ -3,3 +3,9 @@ html
 		title profile
 	body
 		h1 Welcome #{user}
+		p your stories:
+		ul
+			each item in stories
+				li
+					a(href='/' + item.id)= item.name
+		a(class='btn' href='/create') Create

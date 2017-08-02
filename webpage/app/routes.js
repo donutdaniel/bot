@@ -1,3 +1,16 @@
+var mysql = require('mysql');
+// mysql setup
+var dbconfig = require('../config/database.js');
+var connection = mysql.createConnection(dbconfig.connection);
+connection.connect(function(err){
+	if(err){
+		console.log('mysql error');
+	}else
+{		console.log('mysql connected');
+	}
+});
+connection.query('USE ' + dbconfig.database);
+
 module.exports = function(app, passport){
 	// Landing page
 	app.get('/', function(req, res){
@@ -66,50 +79,34 @@ module.exports = function(app, passport){
 
 	// Profile
 	app.get('/profile', isLoggedIn, function(req, res){
-		res.render('profile', {
-			user: req.user.username
-		});
-	});
-
-	// User Account Page
-	app.get('/:user', function(req, res){
-		var user = req.params.user;
-		if(user === 'favicon.ico'){
-			return;
-		}
-		connection.query('SELECT * FROM users WHERE username =' + mysql.escape(user), function(err, result, fields){
-			if(err){
-				console.log('retrieve error: ' + err.code);
-				res.send('error retrieving data');
+		connection.query('SELECT * FROM stories WHERE fk_user =' + mysql.escape(req.user.pk_user), function(err_get, res_get){
+			var stories = [];
+			if(err_get){
+				console.log('retrieve error: ' + err_get.code);
+				req.flash(err_get);
 			}else{
-				console.log('successful retrieval');
-				if(result.length === 0){
-					res.send('user not found');
-				}else{
-					res.send(result);
+				if(res_get.length){
+					stories = res_get;
 				}
 			}
+			res.render('profile', {
+				user: req.user.username,
+				stories: stories
+			});
 		});
 	});
 
-	// Specific Model Page
-	app.get('/:user/:id', function(req, res){
-		var user = req.params.user;
-		var id = req.params.id;
-		console.log(req.params);
-		if(id === 'favicon.ico'){
-			return;
-		}
-		connection.query("SELECT * FROM stories WHERE id =" + mysql.escape(id) + " AND fk_user =" + mysql.escape(user), function(err, result, fields){
-			if(err){
-				console.log('retrieve error: ' + err.code);
-				res.send('error retrieving data');
+	// Specific story page
+	app.get('/:id', isLoggedIn, function(req, res){
+		connection.query('SELECT * FROM stories WHERE id =' + mysql.escape(req.params.id), function(err_get, res_get){
+			if(err_get){
+				console.log('retrieve error: ' + err_get.code);
 			}else{
-				console.log('successful query');
-				if(result.length === 0){
-					res.send('story not found');
+				console.log('successful retrieval');
+				if(res_get.length){
+					res.send(res_get[0]);
 				}else{
-					res.send(result);
+					res.redirect('/profile');
 				}
 			}
 		});

@@ -17,13 +17,11 @@ connection.query('USE ' + dbconfig.database);
 module.exports = function(passport){
 	// serialize
 	passport.serializeUser(function(user, done){
-		console.log('serializing :' + user.pk_user);
 		done(null, user.pk_user);
 	});
 
 	// deserialize
 	passport.deserializeUser(function(id, done){
-		console.log('deserializing :' + id);
 		connection.query('SELECT * FROM users WHERE pk_user =' + mysql.escape(id), function(err, res){
 			done(err, res[0]);
 		});
