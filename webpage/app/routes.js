@@ -1,3 +1,5 @@
+var story = require('../../story.js');
+var buildApp = require('../../util/buildApp.js');
 var mysql = require('mysql');
 // mysql setup
 var dbconfig = require('../config/database.js');
@@ -14,9 +16,13 @@ connection.query('USE ' + dbconfig.database);
 module.exports = function(app, passport){
 	// Landing page
 	app.get('/', function(req, res){
-		res.render('index', {
-			message: 'Hello! Welcome to bot builder',
-		});
+		if(req.isAuthenticated()){
+			res.redirect('/profile');
+		}else{
+			res.render('index', {
+				message: 'Hello! Welcome to bot builder',
+			});
+		}
 	});
 
 	// Signup
@@ -36,7 +42,13 @@ module.exports = function(app, passport){
 		var password = req.body.password;
 		var confirm_password = req.body.confirm_password;
 		req.getValidationResult().then(function(res_val){ // validation check
-			if(!res_val.isEmpty()){ // error
+			if(res_val.isEmpty()){ // attempt add
+				passport.authenticate('local-signup', {
+					successRedirect: '/profile',
+					failureRedirect: '/signup',
+					failureFlash: true
+				})(req, res, next);
+			}else{ // error 
 				var res_val_arr = res_val.array();
 				var msg_arr = [];
 				for (var i = 0; i < res_val_arr.length; i++){
@@ -48,12 +60,6 @@ module.exports = function(app, passport){
 					confirm_password: confirm_password, 
 					messages: msg_arr
 				});
-			}else{ // attempt add
-				passport.authenticate('local-signup', {
-					successRedirect: '/profile',
-					failureRedirect: '/signup',
-					failureFlash: true
-				})(req, res, next);
 			}
 		});
 	});
@@ -91,20 +97,25 @@ module.exports = function(app, passport){
 			}
 			res.render('profile', {
 				user: req.user.username,
-				stories: stories
+				stories: stories,
+				createMessages: []
 			});
 		});
 	});
 
 	// Specific story page
 	app.get('/:id', isLoggedIn, function(req, res){
-		connection.query('SELECT * FROM stories WHERE id =' + mysql.escape(req.params.id), function(err_get, res_get){
+		connection.query('SELECT * FROM stories WHERE id =' + mysql.escape(req.params.id) + 'AND fk_user = ' + mysql.escape(req.user.pk_user), function(err_get, res_get){
 			if(err_get){
 				console.log('retrieve error: ' + err_get.code);
 			}else{
 				console.log('successful retrieval');
 				if(res_get.length){
-					res.send(res_get[0]);
+					res.render('manage', {
+						name: res_get[0].name,
+						id: res_get[0].id,
+						title: res_get[0].name
+					});
 				}else{
 					res.redirect('/profile');
 				}
@@ -112,6 +123,48 @@ module.exports = function(app, passport){
 		});
 	});
 
+	// Story requests
+	app.post('/create', isLoggedIn, function(req, res){
+		req.sanitizeBody('name').trim();
+		req.checkBody('name', 'name required').notEmpty();
+		var name = req.body.name;
+		var description = req.body.description
+		req.getValidationResult().then(function(res_val){
+			if(res_val.isEmpty()){
+				// create story, NLP unit
+				var appData = new Object();
+				appData.name = name;
+				appData.description = description;
+				appData.culture = 'en-us';
+				buildApp.request(new story(name, description, undefined, '1.0'), '/luis/api/v2.0/apps/', 'POST', function(story_, data_){
+					story_.id = JSON.parse(data_);
+					connection.query('INSERT into stories (name, id, fk_user) VALUES (' + mysql.escape(name) + ', ' + mysql.escape(story_.id) + ', ' + mysql.escape(req.user.pk_user) + ')', function(err_add, res_add){
+						if(err_add){
+							console.log('insert error: ' + err_add.code);
+						}else{
+							console.log('successful insert');
+							res.redirect('/' + story_.id);
+						}
+					});
+					story_.save();
+				}, appData);
+			}else{
+				var res_val_arr = res_val.array();
+				var msg_arr = [];
+				for (var i = 0; i < res_val_arr.length; i++){
+					msg_arr.push(res_val_arr[i].msg);
+				}
+				res.render('profile', {
+					name: '',
+					stories: [],
+					createMessages: msg_arr
+				});
+			}
+		});
+	});
+
+
+	// Default
 	app.get('*',function(req, res){
 	  res.send('Error 404: Not Found');
 	});

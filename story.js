@@ -1,6 +1,6 @@
 fs = require('fs');
 
-/*fragments of story to be stored in structure class, not accessable in export*/
+/*fragments of story to be stored in story class, not accessable in export*/
 class segment{
 	/* lines - an array of strings to be said in the scene
 	 * options - map of (string key, option object)
@@ -22,7 +22,7 @@ class segment{
 		}
 		var option = new Object();
 		option.destinationKey = destinationKey;
-		option.destination = destination; //can be connected through structure.connect
+		option.destination = destination; //can be connected through story.connect
 		this.options[key] = option;
 	}
 
@@ -39,7 +39,7 @@ class segment{
  * segments is an options.length-ary tree
  * database of segments is stored as a hashset for easier access
  */
-class structure{
+class story{
 	constructor(name, description, id, version){
 		this.segments = new Map();
 		this.optionslist = new Map();
@@ -106,7 +106,7 @@ class structure{
 
 	/*saves it as a text file*/
 	save(){
-		var path = 'structure_files/' + this.id + '.txt';
+		var path = 'stories/' + this.id + '.txt';
 		fs.open(path, 'w', function(err){
 			if(err){
 				console.log(err);
@@ -152,4 +152,4 @@ class structure{
 	 */
 }
 
-module.exports = structure;
+module.exports = story;

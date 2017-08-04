@@ -1,11 +1,45 @@
+doctype html
 html
 	head
+		link(rel='stylesheet', href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css', integrity='sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u', crossorigin='anonymous')
+		link(href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous")
+		style
+			include styles/profile.css
 		title profile
 	body
+		a(class='btn btn-default' href='/logout') Logout
 		h1 Welcome #{user}
 		p your stories:
 		ul
 			each item in stories
 				li
 					a(href='/' + item.id)= item.name
-		a(class='btn' href='/create') Create
+		button.btn.btn-default(type='button' data-toggle='modal' data-target='#modalCreate') Create
+
+		//- modal
+		.modal.fade#modalCreate(tabindex='-1' role='dialog' aria-hidden='true')
+			.modal-dialog(role='document')
+				.modal-content
+					.modal-header
+						h5.modal-title Create a new story
+						button.close(type='button' data-dismiss='modal' aria-label='Close')
+							i.fa.fa-times
+					.modal-body
+						form(action='/create' method='post')
+							label(for='name') Name <br>
+							input(type='text' placeholder='name' name='name')
+							| <br>
+							label(for='description') Description <br>
+							input(type='text' placeholder='description' name='description')
+							| <br>
+							button(class='btn btn-primary' type='submit') Create
+					ul(id='messages')
+						each item in createMessages
+							li= item
+
+script(src="https://code.jquery.com/jquery-3.2.1.min.js"
+integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+crossorigin="anonymous")
+script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+crossorigin="anonymous")

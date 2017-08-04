@@ -3,11 +3,9 @@ html
 	head
 		link(rel='stylesheet', href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css', integrity='sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u', crossorigin='anonymous')
 		style
-			include styles/index.css
-		title Welcome!
+			include styles/manage.css
+		title= title
 	body
 		a(class='btn btn-default' href='/') HOME
-		h1= message
-		a(class='btn btn-default' href='/login') Login
-		| <br>
-		a(class='btn btn-default' href='/signup') Signup
+		h1= name
+		h2 id= #{id}

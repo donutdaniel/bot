@@ -69,7 +69,6 @@ module.exports = function(passport){
 			}else{
 				console.log('successful retrieval: ' + username);
 				if(res_get.length){
-					console.log(res_get[0]);
 					return done(null, res_get[0]);
 				}else{
 					return done(null, false, req.flash('loginMessage', 'incorrect information'));
