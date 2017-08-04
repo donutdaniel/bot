@@ -23,8 +23,9 @@ API_KEY
 
 ###	SERVER TODO
 * connect sql requests with actual saved stories
-* build the create page
+* build the manage
 * nicer interface
+* cleanup initial creation - conflict: cannot have duplicate app name in LUIS
 
 ### ISSUES:
 * session.userData.current stores id, so each time proceed is called the structure searches for the segment again (inefficient).
