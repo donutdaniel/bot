@@ -1,3 +1,5 @@
+//- variables: stories, create_name, create_description, create_messages
+
 doctype html
 html
 	head
@@ -14,10 +16,10 @@ html
 			each item in stories
 				li
 					a(href='/' + item.id)= item.name
-		button.btn.btn-default(type='button' data-toggle='modal' data-target='#modalCreate') Create
+		button.btn.btn-default(type='button' data-toggle='modal' data-target='#modal_create') Create
 
 		//- modal
-		.modal.fade#modalCreate(tabindex='-1' role='dialog' aria-hidden='true')
+		#modal_create.modal.fade(tabindex='-1' role='dialog' aria-hidden='true')
 			.modal-dialog(role='document')
 				.modal-content
 					.modal-header
@@ -34,7 +36,7 @@ html
 							| <br>
 							button(class='btn btn-primary' type='submit') Create
 					ul(id='messages')
-						each item in createMessages
+						each item in create_messages
 							li= item
 
 script(src="https://code.jquery.com/jquery-3.2.1.min.js"
@@ -43,3 +45,7 @@ crossorigin="anonymous")
 script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
 integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
 crossorigin="anonymous")
+script.
+	if('#{create_messages}' != 0){
+		$('#modal_create').modal();
+	}

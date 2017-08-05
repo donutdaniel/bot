@@ -42,11 +42,25 @@ module.exports = function(app, passport){
 		var password = req.body.password;
 		var confirm_password = req.body.confirm_password;
 		req.getValidationResult().then(function(res_val){ // validation check
-			if(res_val.isEmpty()){ // attempt add
-				passport.authenticate('local-signup', {
-					successRedirect: '/profile',
-					failureRedirect: '/signup',
-					failureFlash: true
+					if(res_val.isEmpty()){ // attempt add
+						passport.authenticate('local-signup', function(err, user, info){
+					if(err){
+						return next(err);
+					}
+					if(!user){
+						return res.render('signup', {
+							username: req.body.username,
+							password: req.body.password,
+							confirm_password: req.body.confirm_password,
+							messages: info.messages
+						});
+					}
+					req.logIn(user, function(err){
+						if(err){
+							return next(err);
+						}
+						return res.redirect('/profile');
+					});
 				})(req, res, next);
 			}else{ // error 
 				var res_val_arr = res_val.array();
@@ -69,10 +83,23 @@ module.exports = function(app, passport){
 		res.render('login', {messages: req.flash('loginMessage')});
 	});
 	app.post('/login', function(req, res, next){
-		passport.authenticate('local-login', {
-			successRedirect: '/profile',
-			failureRedirect: '/login',
-			failureFlash: true
+		passport.authenticate('local-login', function(err, user, info){
+			if(err){
+				return next(err);
+			}
+			if(!user){
+				return res.render('login', {
+					username: req.body.username,
+					password: req.body.password,
+					messages: info.messages,
+				});
+			}
+			req.logIn(user, function(err){
+				if(err){
+					return next(err);
+				}
+				return res.redirect('/profile');
+			});
 		})(req, res, next);
 	});
 
@@ -98,7 +125,7 @@ module.exports = function(app, passport){
 			res.render('profile', {
 				user: req.user.username,
 				stories: stories,
-				createMessages: []
+				create_messages: req.flash('create_messages')
 			});
 		});
 	});
@@ -154,15 +181,11 @@ module.exports = function(app, passport){
 				for (var i = 0; i < res_val_arr.length; i++){
 					msg_arr.push(res_val_arr[i].msg);
 				}
-				res.render('profile', {
-					name: '',
-					stories: [],
-					createMessages: msg_arr
-				});
+				req.flash('create_messages', msg_arr);
+				res.redirect('/profile');
 			}
 		});
 	});
-
 
 	// Default
 	app.get('*',function(req, res){

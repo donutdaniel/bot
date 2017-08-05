@@ -39,7 +39,7 @@ module.exports = function(passport){
 			if(err_add){
 				console.log('user insertion error: ' + err_add.code);
 				if(err_add.code === 'ER_DUP_ENTRY'){
-					return done(null, false, req.flash('signupMessage', 'username taken'));
+					return done(null, false, {messages: ['username taken']});
 				}else{
 					return done(err_add);
 				}
@@ -71,7 +71,7 @@ module.exports = function(passport){
 				if(res_get.length){
 					return done(null, res_get[0]);
 				}else{
-					return done(null, false, req.flash('loginMessage', 'incorrect information'));
+					return done(null, false, {messages: ['incorrect information']});
 				}
 			}
 		});
