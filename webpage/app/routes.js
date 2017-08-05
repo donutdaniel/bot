@@ -1,4 +1,5 @@
 var story = require('../../story.js');
+var parser = require('../../util/parser.js');
 var buildApp = require('../../util/buildApp.js');
 var mysql = require('mysql');
 // mysql setup
@@ -138,10 +139,11 @@ module.exports = function(app, passport){
 			}else{
 				console.log('successful retrieval');
 				if(res_get.length){
+					var story_ = parser('stories/' + res_get[0].id + '.txt');
 					res.render('manage', {
 						name: res_get[0].name,
 						id: res_get[0].id,
-						title: res_get[0].name
+						story: story_
 					});
 				}else{
 					res.redirect('/profile');
