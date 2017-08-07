@@ -26,7 +26,10 @@ app.use(expressValidator());
 app.use(session({
 	secret: 'thisisthesecret',
 	resave: false,
-	saveUninitialized: false
+	saveUninitialized: false,
+	cookie: {
+		maxAge: 7 * 24 * 60 * 60 * 1000
+	}
 }));
 app.use(passport.initialize());
 app.use(passport.session());
