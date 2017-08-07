@@ -7,20 +7,34 @@ var draw = function(){
 	var nodes = new vis.DataSet;
 	var edges = new vis.DataSet;
 	var container = document.getElementById('graph');
-	console.log(story);
-	story.segments.forEach(function(value_segment, key_segment, map_segment){
-		nodes.add({
-			id: value_segment.id,
-			label: value_segment.id
-		});
-		value_segment.options.forEach(function(value_option, key_option, map_option){
-			edges.add({
-				from: value_segment.id,
-				to: value_option.destinationKey,
-				label: key_option
+	for(var key_seg in story.segments){
+		if(story.segments.hasOwnProperty(key_seg)){
+			var segment_ = story.segments[key_seg];
+			nodes.add({
+				id: segment_.id,
+				label: segment_.id
 			});
-		});
-	});
+			for(var key_opt in segment_.options){
+				if(segment_.options.hasOwnProperty(key_opt)){
+					var option_ = segment_.options[key_opt];
+					edges.add({
+						from: segment_.id,
+						to: option_.destinationKey,
+						label: key_opt,
+						arrows: 'to'
+					})
+				}
+			}
+			if(segment_.jump.jumpKey != undefined){
+				edges.add({
+					from:segment_.id,
+					to: segment_.jump.jumpKey,
+					arrows: 'to',
+					color: 'rgb(230, 140, 100)'
+				})
+			}
+		}
+	}
 	var data = {
 	    nodes: nodes,
 	    edges: edges

@@ -78,10 +78,11 @@ function displayCB(story, data){
 if matched, then the app is updated
 if not matched, a new app is created*/
 function getAppCB(story, data){
-    var appData = new Object();
-    appData.name = story.name;
-    appData.description = story.description;
-    appData.culture = 'en-us';
+    var appData = {
+        name: story.name,
+        description: story.description,
+        culture: 'en-us'
+    }
     var path = universalPath;
     var dJSON = JSON.parse(data);
     for (var i = 0; i < dJSON.length; i++) {
@@ -135,13 +136,15 @@ function getIntentsCB(story, data){ // TODO: allow for updating
     // helper variables to make sure process of adding intents has finished
     var intentsAddedSum = 0;
     var totalNewIntents = 0;
-    story.optionslist.forEach((value, key, map) => {
+    Object.keys(story.optionslist).forEach((key) => {
+        var value = story.optionslist[key];
         // Check for duplicates and add in batch
         if(existingIntents.find((element, index, array) => { return element === key; }) === undefined){
             totalNewIntents++;
             existingIntents.push(key);
-            var intentData = new Object();
-            intentData.name = key;
+            var intentData = {
+                name: key,
+            }
             console.log("Adding Intent:" + key);
             request(story, path + '/intents', 'POST', addIntentCB, intentData);
         }
@@ -223,11 +226,12 @@ function buildApp(story){
         console.log("Retrieving App List");
         request(story, universalPath, 'GET', getAppCB); 
     }else{
-        var appData = new Object();
-        appData.name = story.name;
-        appData.description = story.description;
-        appData.verion = story.version;
-        appData.culture = 'en-us';
+        var appData = {
+            name: story.name,
+            description: story.description,
+            version: story.version,
+            culture: 'en-us'
+        }
         console.log("Updating App: " + story.name);
         request(story, universalPath + story.id, 'PUT', updateAppCB, appData, true);
     }

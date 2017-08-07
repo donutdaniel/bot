@@ -40,6 +40,6 @@ There's nothing else around in the room. You've searched it all.
 Box Open the box/Inspect the box/Look at the box
 Look Look around/Walk around
 Open Open/Yes/Open it/Yes open it/Open the box
-Close No/Don't open it/No, don't open it/Don't optn the box
+Close No/Don't open it/No, don't open it/Don't open the box
 Restart restart
 </optionslist>

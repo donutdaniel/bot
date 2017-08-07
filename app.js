@@ -50,8 +50,8 @@ var bot = new builder.UniversalBot(connector, [
 					}
 					session.send(lines[i]);
 				}
-				if(proceed.jump != undefined){
-					proceed = proceed.jump;
+				if(proceed.jump.jump != undefined){
+					proceed = proceed.jump.jump;
 				}else{
 					session.userData.current = proceed.id;
 					proceed = undefined;
@@ -73,7 +73,7 @@ var bot = new builder.UniversalBot(connector, [
 ]);
 
 // Parse text file into story object
-var story_ = parser('stories/' + process.env.STORY_NAME);
+var story_ = parser.parse('stories/' + process.env.STORY_NAME);
 
 // Construct LUIS app and recognizer
 var LUIS_URL = process.env.LUIS_URL;
@@ -93,9 +93,10 @@ emitter.on('recognize', function(){
 
 // Construct path through language intents and story
 // session.userData.current is the current segmentID not actual segment
-story_.optionslist.forEach(function(value, key, array){
+Object.keys(story_.optionslist).forEach(function(key){
 	bot.dialog(key, [
 		function(session){
+					console.log(key);
 			var proceed = story_.proceed(session.userData.current, key);
 			if(proceed === undefined){
 				session.send('Sorry, I did not understand \'%s\'. Type \'help\' if you need assistance or \'repeat\' if you want me to repeat what I said', session.message.text);
@@ -114,8 +115,8 @@ story_.optionslist.forEach(function(value, key, array){
 						session.send(lines[i]);
 					}
 					// check for jump
-					if(proceed.jump != undefined){
-						proceed = proceed.jump;
+					if(proceed.jump.jump != undefined){
+						proceed = proceed.jump.jump;
 					}else{
 						// save segment before break
 						session.userData.current = proceed.id;
@@ -164,8 +165,8 @@ bot.dialog('ResetConversation', [
 				}
 				session.send(lines[i]);
 			}
-			if(proceed.jump != undefined){
-				proceed = proceed.jump;
+			if(proceed.jump.jump != undefined){
+				proceed = proceed.jump.jump;
 			}else{
 				session.userData.current = proceed.id;
 				proceed = undefined;
@@ -236,9 +237,11 @@ function activateOptionBtns(session){
 		session.send('Error retrieving data. Please type \'reset\' to reset the bot');
 	}else{
 		var promptOptions = [];
-		found.options.forEach(function(value, key, map){
-			promptOptions.push(key);
-		});
+		for(var key_opt in found.options){
+			if(found.options.hasOwnProperty(key_opt)){
+				promptOptions.push(key_opt);
+			}
+		}
 		builder.Prompts.choice(session, 'Choices:', promptOptions, {listStyle: builder.ListStyle.button});
 	}
 }

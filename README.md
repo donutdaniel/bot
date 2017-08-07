@@ -26,10 +26,6 @@ API_KEY
 * build the manage
 * nicer interface
 * cleanup initial creation - conflict: cannot have duplicate app name in LUIS
-* story must be json friendly to be passed to graph.js
-
-### ISSUES:
-* session.userData.current stores id, so each time proceed is called the structure searches for the segment again (inefficient).
 
 ### NOTES:
 * site uses bot id as identifier (e.g. /:id)

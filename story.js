@@ -2,96 +2,103 @@ fs = require('fs');
 
 /*fragments of story to be stored in story class, not accessable in export*/
 class segment{
-	/* lines - an array of strings to be said in the scene
-	 * options - map of (string key, option object)
-	 * option object - destinationKey, destination
+	/* id - unique segment id
+	 * lines - an array of strings to be said in the scene
+	 * options - object map of {optionName: {destionationKey, destination}}
+	 * jump - object {jumpKey, jump}
 	 */
-	constructor(lines = [], options = new Map(), jumpKey = null, id = undefined){
+	constructor(id = undefined, lines = [], options = {}, jump = {}){
+		this.id = id;
 		this.lines = lines;
 		this.options = options;
-		this.jumpKey = jumpKey;
-		this.jump = undefined;
-		this.id = id;
+		this.jump = jump
 	}
 
 	/*Adds a new option object to options*/
-	addOption(key, destinationKey, destination = undefined){
+	addOption(optionName, destinationKey, destination = undefined){
 		if(arguments.length < 2){
 			console.log('error adding option');
 			return;
-		}
-		var option = new Object();
-		option.destinationKey = destinationKey;
-		option.destination = destination; //can be connected through story.connect
-		this.options[key] = option;
+		} 
+		this.options[optionName] = {
+			destinationKey: destinationKey,
+			destination: destination //can be connected through story.connect
+		};
 	}
 
-	addJump(jumpKey){
-		this.jumpKey = jumpKey;
-		this.jump = undefined;
+	addJump(jump){
+		this.jump = jump;
 	}
-
-	/*member variables
-	lines, options, jumpKey, jump, id*/
 }
 
 /* main story data structure
- * segments is an options.length-ary tree
- * database of segments is stored as a hashset for easier access
+ * segments is an segment.length-ary tree
  */
 class story{
-	constructor(name, description, id, version){
-		this.segments = new Map();
-		this.optionslist = new Map();
+	/* segments - object map {segmentID: segment}
+	 * optionslist - object map of arrays {optionID: [lines]}
+	 * start - start segment
+	 * name, description, id, version - information
+	 */
+
+	/*options - {name, description, id, version}*/
+	constructor(options = {}){
+		this.name = options.name;
+		this.description = options.description;
+		this.id = options.id;
+		this.version = options.version;
+		this.segments = {};
+		this.optionslist = {};
 		this.start = undefined;
-		this.name = name;
-		this.description = description;
-		this.id = id;
-		this.version = version;
 	}
 
 	/*member functions*/
 	/* Creates and adds a new segment, adds to segments*/ 
-	addSegment(id, lines, options, jumpKey){
-		var tempSegment = new segment(lines, options, jumpKey, id);
-		this.segments.set(id, tempSegment);
-		if(this.start === undefined){
-			this.start = tempSegment;
+	addSegment(id, lines, options, jump){
+		if(this.segments[id] === undefined){
+			var tempSegment = new segment(id, lines, options, jump);
+			this.segments[id] = tempSegment;
+			if(this.start === undefined){
+				this.start = tempSegment;
+			}
 		}
 	}
 
 	/*finds segment and adds option to it*/
-	addOption(key, option){
-		var tempSegment = this.segments.get(key);
-		if(tempSegment != undefined){
-			tempSegment.addOption(key, option);
+	addOption(id, optionName, optionKey, destionationKey, destination){
+		if(this.segments[id] != undefined){
+			this.segments[id].addOption(key, option, optionName, optionKey, destinationKey, destination);
 		}
 	}
 
 	/*deletes key-value pair internally*/
-	delete(key){
-		delete this.segments.get(key)
+	delete(id){
+		delete this.segments[id]
 	}
 
 	/*connect all the segments using key identification. Run after adding all the segments*/
 	connect(){
-		this.segments.forEach(function(value, key, map){
-			if(value.jumpKey != null){
-				value.jump = map.get(value.jumpKey);
-			}else{
-				value.options.forEach(function(value_o, key_o, map_o){
-					var destSeg = map.get(value_o.destinationKey);
-					value_o.destination = destSeg;
-				});
+		for(var key_seg in this.segments){
+			if(this.segments.hasOwnProperty(key_seg)){
+				var segment_ = this.segments[key_seg];
+				if(segment_.jump.jumpKey != undefined){
+					segment_.jump.jump = this.segments[segment_.jump.jumpKey];
+				}else{
+					for(var key_opt in segment_.options){
+						if(segment_.options.hasOwnProperty(key_opt)){
+							segment_.options[key_opt].destination = this.segments[segment_.options[key_opt].destinationKey];
+						}
+					}
+				}
 			}
-		});
+		}
 	}
 
 	/*follows with proceed key and returns the next segment*/
-	proceed(segmentID, key){
-		var next = this.segments.get(segmentID);
+	proceed(segmentID, optionID){
+		var next = this.segments[segmentID];
 		if(next != undefined){
-			next = next.options.get(key);
+			next = next.options[optionID];
 			if(next != undefined){
 				next = next.destination;
 			}
@@ -100,8 +107,13 @@ class story{
 	}
 
 	/*returns the segment based on key*/
-	getSegment(key){
-		return this.segments.get(key);
+	getSegment(id){
+		return this.segments[id];
+	}
+
+	/*sets the optionlist*/
+	setOptionslist(optionslist){
+		this.optionslist = optionslist;
 	}
 
 	/*saves it as a text file*/
@@ -117,39 +129,40 @@ class story{
 		stream.write(this.name + ' ' + this.version + '\n');
 		stream.write(this.description + '\n');
 		stream.write(this.id + '\n');
-		this.segments.forEach(function(value, key, map){
-			stream.write('<segment id=' + key + '>' + '\n');
-			value.lines.forEach(function(element){
-				stream.write(element + '\n');
-			});
-			if(value.options.size != 0){
-				stream.write('<options>' + '\n');
-				value.options.forEach(function(value_o, key_o, map_o){
-					stream.write(key_o + ' ' + value_o.destinationKey + '\n');
+		for(var key_seg in this.segments){
+			if(this.segments.hasOwnProperty(key_seg)){
+				var segment_ = this.segments[key_seg];
+				stream.write('<segment id=' + key_seg + '>' + '\n');
+				segment_.lines.forEach(function(val_line){
+					stream.write(val_line + '\n');
 				});
-				stream.write('</options>' + '\n');
-			}else if(value.jumpKey != null){
-				stream.write('<jump>' + '\n');
-				stream.write(value.jumpKey + '\n');
-				stream.write('</jump>' + '\n');
+				if(Object.keys(segment_.options).length != 0){
+					stream.write('<options>' + '\n');
+					for(var key_opt in segment_.options){
+						if(segment_.options.hasOwnProperty(key_opt)){
+							stream.write(key_opt + ' ' + segment_.options[key_opt].destinationKey + '\n');
+						}
+					}
+					stream.write('</options>' + '\n');
+				}else if(segment_.jump.jumpKey != undefined){
+					stream.write('<jump>' + '\n');
+					stream.write(segment_.jump.jumpKey + '\n');
+					stream.write('</jump>' + '\n');
+				}
+				stream.write('</segment>' + '\n');
 			}
-			stream.write('</segment>' + '\n')
-		});
-		if(this.optionslist.size != 0){
+		}
+		if(Object.keys(this.optionslist).length != 0){
 			stream.write('<optionslist>' + '\n');
-			this.optionslist.forEach(function(value, key, map){
-				stream.write(key + ' ' + value.join('/') + '\n');
-			});
+			for(var key_optlist in this.optionslist){
+				if(this.optionslist.hasOwnProperty(key_optlist)){
+					stream.write(key + ' ' + this.optionslist[key_optlist].join('/') + '\n');
+				}
+			}
 			stream.write('</optionslist>' + '\n');
 		}
 		stream.end();
 	}
-
-	/*member variables:
-	 * start, name, description, id, version
-	 * segments [map (id, segment reference)]
-	 * optionslist [map (option name, triggers[])]
-	 */
 }
 
 module.exports = story;
