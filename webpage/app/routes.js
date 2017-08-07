@@ -140,6 +140,21 @@ module.exports = function(app, passport){
 				console.log('successful retrieval');
 				if(res_get.length){
 					var story_ = parser('stories/' + res_get[0].id + '.txt');
+					var story_segments = new Array();
+					story_.segments.forEach(function(value_segment, key_segment, map_segment){
+						var options = [];
+						value_segment.options.forEach(function(value_option, key_option, map_option){
+							options.push({
+								key: key_option,
+								destinationKey: value_option.destinationKey
+							})
+						});
+						story_segments.push({
+							lines: value_segment.lines,
+							options: options,
+							id: value_segment.id
+						});
+					});
 					res.render('manage', {
 						name: res_get[0].name,
 						id: res_get[0].id,

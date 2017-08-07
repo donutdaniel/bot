@@ -3,21 +3,30 @@
 doctype html
 html
 	head
-		link(rel='stylesheet', href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css', integrity='sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u', crossorigin='anonymous')
+		link(rel="stylesheet", href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css", integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u", crossorigin="anonymous")
+		script(src="https://code.jquery.com/jquery-3.2.1.min.js"
+		integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+		crossorigin="anonymous")
+		script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+		integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+		crossorigin="anonymous")
+		//- global vars
+		script.
+			var story = !{JSON.stringify(story)}
+			console.dir(story);
+		//- vis
+		script
+			include ../../node_modules/vis/dist/vis.js
+		style
+			include ../../node_modules/vis/dist/vis.css
+		script(src="scripts/graph.js" type="text/javascript")
 		style
 			include styles/manage.css
 		title= name
-	body
-		a(class='btn btn-default' href='/') HOME
+	body(onload="init()")
+		a(class="btn btn-default" href="/") HOME
 		h1= name
 		h2 id= #{id}
-		h3= story
-		
-script(src="https://code.jquery.com/jquery-3.2.1.min.js"
-integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
-crossorigin="anonymous")
-script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
-integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
-crossorigin="anonymous")
-script
-	include scripts/graph.js
+		#graph
+		each item in story
+			p= item.id

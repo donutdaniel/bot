@@ -17,6 +17,7 @@ require('./config/passport.js')(passport);
 // express setup and middleware
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
+app.use(express.static(__dirname + '/views'));
 app.use(morgan('dev'));
 app.use(cookieParser());
 app.use(bodyParser.json());

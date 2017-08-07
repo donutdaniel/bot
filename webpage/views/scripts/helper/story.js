@@ -32,7 +32,7 @@ class segment{
 	}
 
 	/*member variables
-	lines, options, jumpKey, jump, id*/
+	lines, options, jump, id*/
 }
 
 /* main story data structure
@@ -151,5 +151,3 @@ class story{
 	 * optionslist [map (option name, triggers[])]
 	 */
 }
-
-module.exports = story;
