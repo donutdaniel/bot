@@ -3,27 +3,54 @@
 doctype html
 html
 	head
-		link(rel="stylesheet", href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css", integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u", crossorigin="anonymous")
-		script(src="https://code.jquery.com/jquery-3.2.1.min.js"
-		integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
-		crossorigin="anonymous")
-		script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
-		integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
-		crossorigin="anonymous")
-		//- global vars
-		script.
-			var story = !{JSON.stringify(story)};
-		//- vis
-		script
-			include ../../node_modules/vis/dist/vis.js
+		meta(charset="UTF-8")
+		meta(name="viewport" content="width=device-width, initial-scale=1")
+		meta(name="description" content="botbuilder-manage")
+		meta(name="author" content="Daniel Ho")
+		//- font awesome
+		link(href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous")
+		//- bootstrap
+		link(rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous")
 		style
 			include ../../node_modules/vis/dist/vis.css
-		script(src="scripts/graph.js" type="text/javascript")
 		style
 			include styles/manage.css
 		title= name
 	body(onload="init()")
-		a(class="btn btn-default" href="/") HOME
-		h1= name
-		h2 id= #{id}
-		#graph
+	//- Navigation
+	nav#main-nav.navbar.navbar-default.navbar-custom.navbar-fixed-top
+		.container-fluid
+			//- for mobile display
+			.navbar-header
+				button.navbar-toggle(type="button" data-toggle="collapse" data-target="#navbar-collapse-id")
+					span.sr-only Toggle Navigation
+					i.fa.fa-bars.fa-lg
+				a.navbar-brand(href="/profile")
+					.list-inline
+						img#logo(src="images/favicon.png")
+						| BotBuilder
+			//- buttons
+			#navbar-collapse-id.collapse.navbar-collapse
+				ul.nav.navbar-nav.navbar-right
+					li
+						a(href="/profile") Home
+					li
+						a(href="/") Options
+					li
+						a(href="/") Other
+	#graph
+
+//- jquery
+script(src="https://code.jquery.com/jquery-3.2.1.min.js"
+integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+crossorigin="anonymous")
+//- bootstrap javascript
+script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+crossorigin="anonymous")
+script.
+	var story = !{JSON.stringify(story)}; //set global vars
+//- vis
+script
+	include ../../node_modules/vis/dist/vis.js
+script(src="scripts/graph.js" type="text/javascript")
