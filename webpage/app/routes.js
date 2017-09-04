@@ -189,6 +189,11 @@ module.exports = function(app, passport){
 		});
 	});
 
+	// save story
+	app.post('/:id/save', isLoggedIn, function(req, res){
+
+	});
+
 	// Default
 	app.get('*',function(req, res){
 	  res.send('Error 404: Not Found');
