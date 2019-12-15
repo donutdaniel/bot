@@ -1,2 +1,4 @@
 node_modules/
 .envhide
+.env
+npm-debug.log

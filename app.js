@@ -9,7 +9,7 @@ var story = require('./story.js');
 var parser = require('./util/parser.js');
 var buildApp = require('./util/buildApp.js');
 // Enable Website
-var website = require('./webpage/server.js');
+// var website = require('./webpage/server.js');
 
 // Setup Restify Server
 var server = restify.createServer();

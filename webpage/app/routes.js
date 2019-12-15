@@ -2,6 +2,7 @@ var parser = require('../../util/parser.js');
 var buildApp = require('../../util/buildApp.js');
 var circularJSON = require('circular-json')
 var mysql = require('mysql');
+var story = require('../../story.js');
 // mysql setup
 var dbconfig = require('../config/database.js');
 var connection = mysql.createConnection(dbconfig.connection);
